@@ -98,113 +98,145 @@ VALID_USER = "admin"
 VALID_PASS = "nirnay2026"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LOGIN PAGE
+# LOGIN PAGE — Option A: full HTML via st.components.v1.html()
+# Query param ?auth=1 is set by JS after correct credentials, Streamlit reads it
 # ═══════════════════════════════════════════════════════════════════════════════
+_qp = st.query_params
+if _qp.get("auth") == "1" and not st.session_state["logged_in"]:
+    st.session_state["logged_in"] = True
+    st.query_params.clear()
+    st.rerun()
+
 if not st.session_state["logged_in"]:
     st.markdown("""
 <style>
 section[data-testid="stSidebar"]{display:none!important;}
-.stApp{background:#0a2240!important;}
+.stApp{background:#060f1e!important;}
 .block-container{padding:0!important;max-width:100%!important;}
-[data-testid="column"]:first-child{padding-right:0!important;}
-[data-testid="column"]:last-child{padding-left:0!important;}
-div[data-testid="stVerticalBlock"]{gap:0!important;}
+header{display:none!important;}
+footer{display:none!important;}
 </style>
 """, unsafe_allow_html=True)
 
-    _lcol, _rcol = st.columns([13, 10], gap="small")
-
-    with _lcol:
-        _cv1.html("""
+    _failed_msg = "true" if st.session_state["_login_failed"] else "false"
+    _cv1.html(f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',system-ui,sans-serif;background:#0a2240;}
-.wrap{background:#0a2240;padding:48px 40px;min-height:100vh;display:flex;flex-direction:column;}
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
-.shield{width:32px;height:32px;border-radius:8px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.brand-name{font-size:20px;font-weight:800;color:white;letter-spacing:-0.5px;}
-.brand-tag{font-size:9px;color:rgba(255,255,255,0.35);border:0.5px solid rgba(255,255,255,0.15);border-radius:20px;padding:2px 10px;letter-spacing:.04em;}
-.tagline{margin-bottom:28px;}
-.tagline h2{font-size:24px;font-weight:700;color:white;line-height:1.3;margin-bottom:8px;}
-.tagline h2 span{color:#FF9933;}
-.tagline p{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.6;}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;flex:1;}
-.card{background:white;border-radius:10px;padding:14px 15px;}
-.cat{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
-.ctitle{font-size:13px;font-weight:600;color:#0a2240;margin-bottom:3px;}
-.desc{font-size:10px;color:#64748b;line-height:1.4;}
-.badges{display:flex;gap:7px;flex-wrap:wrap;}
-.badge{font-size:9px;font-weight:600;color:#16a34a;background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:20px;padding:3px 9px;}
+*{{box-sizing:border-box;margin:0;padding:0;}}
+html,body{{height:100%;font-family:'Inter',system-ui,sans-serif;background:#060f1e;}}
+.page{{display:flex;height:100vh;min-height:620px;}}
+.left{{flex:1.3;background:#071428;padding:48px 44px;display:flex;flex-direction:column;border-right:1px solid #132140;}}
+.right{{flex:0.8;background:#0d1f3c;padding:0 48px;display:flex;flex-direction:column;justify-content:center;}}
+.brand{{display:flex;align-items:center;gap:10px;margin-bottom:10px;}}
+.shield{{width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;}}
+.brand-name{{font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;}}
+.brand-tag{{font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;}}
+.divider{{width:36px;height:2px;background:#FF9933;border-radius:2px;margin:12px 0 18px;}}
+.tagline h2{{font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;}}
+.tagline h2 span{{color:#FF9933;}}
+.tagline p{{font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;max-width:340px;margin-bottom:24px;}}
+.grid{{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px;flex:1;}}
+.card{{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:13px 14px;}}
+.cat{{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}}
+.ctitle{{font-size:12px;font-weight:700;color:white;margin-bottom:3px;}}
+.desc{{font-size:10px;color:rgba(255,255,255,0.38);line-height:1.4;}}
+.badges{{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);}}
+.badge{{font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;}}
+.hackbadge{{display:flex;align-items:center;gap:8px;margin-bottom:32px;}}
+.hb{{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;}}
+.hbsep{{width:1px;height:16px;background:rgba(255,255,255,0.1);}}
+.hbtxt{{font-size:9px;color:rgba(255,255,255,0.2);}}
+.label{{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}}
+.field-wrap{{margin-bottom:13px;}}
+input{{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px 14px;font-size:13px;color:white;outline:none;font-family:inherit;}}
+input::placeholder{{color:rgba(255,255,255,0.22);}}
+input:focus{{border-color:rgba(255,153,51,0.6);background:rgba(255,255,255,0.08);}}
+.btn{{width:100%;background:#FF9933;border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:700;color:white;cursor:pointer;letter-spacing:.02em;margin-top:8px;font-family:inherit;}}
+.btn:hover{{background:#e8871f;}}
+.err{{color:#f87171;font-size:11px;margin-top:6px;display:none;}}
+.err.show{{display:block;}}
+.footer-note{{font-size:10px;color:rgba(255,255,255,0.18);text-align:center;margin-top:20px;line-height:1.7;}}
+.signin-label{{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}}
+.signin-title{{font-size:22px;font-weight:700;color:white;margin-bottom:26px;}}
 </style>
-<div class="wrap">
-  <div class="brand">
-    <div class="shield">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
+</head>
+<body>
+<div class="page">
+
+  <div class="left">
+    <div class="brand">
+      <div class="shield">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="brand-name">Nirnay</span>
+      <span class="brand-tag">AI Review System</span>
     </div>
-    <span class="brand-name">Nirnay</span>
-    <span class="brand-tag">AI Review System</span>
+    <div class="divider"></div>
+    <div class="tagline">
+      <h2>Regulatory review,<br><span>reimagined for India.</span></h2>
+      <p>All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</p>
+    </div>
+    <div class="grid">
+      <div class="card" style="border-top:2px solid #0052cc;"><div class="cat" style="color:#60a5fa;">01 · Privacy</div><div class="ctitle">Anonymisation</div><div class="desc">DPDP Act 2023 · two-step PII removal</div></div>
+      <div class="card" style="border-top:2px solid #0f766e;"><div class="cat" style="color:#34d399;">02 · Intelligence</div><div class="ctitle">Summarisation</div><div class="desc">SAE · checklists · meeting audio</div></div>
+      <div class="card" style="border-top:2px solid #6d28d9;"><div class="cat" style="color:#a78bfa;">03 · Validation</div><div class="ctitle">Completeness</div><div class="desc">20 mandatory fields · RAG flagging</div></div>
+      <div class="card" style="border-top:2px solid #b45309;"><div class="cat" style="color:#fbbf24;">04 · Triage</div><div class="ctitle">Classification</div><div class="desc">SAE severity · duplicate detection</div></div>
+      <div class="card" style="border-top:2px solid #0369a1;"><div class="cat" style="color:#38bdf8;">05 · Diff Engine</div><div class="ctitle">Comparison</div><div class="desc">Semantic + structural dossier diff</div></div>
+      <div class="card" style="border-top:2px solid #be185d;"><div class="cat" style="color:#f472b6;">06 · Generation</div><div class="ctitle">Inspection Report</div><div class="desc">Typed / audio → CDSCO GCP report</div></div>
+    </div>
+    <div class="badges">
+      <span class="badge">✓ DPDP Act 2023</span>
+      <span class="badge">✓ NDCT Rules 2019</span>
+      <span class="badge">✓ ICMR GCP</span>
+      <span class="badge">✓ MeitY AI Ethics</span>
+    </div>
   </div>
-  <div class="tagline">
-    <h2>Regulatory review,<br><span>reimagined for India.</span></h2>
-    <p>All 6 CDSCO-mandated AI features. Upload real documents and get structured regulatory outputs in seconds.</p>
+
+  <div class="right">
+    <div class="hackbadge">
+      <div class="hb">India<br>AI</div>
+      <div class="hbsep"></div>
+      <div class="hb">CD<br>SCO</div>
+      <span class="hbtxt">Hackathon 2026 · Stage 1</span>
+    </div>
+    <div class="signin-label">Authorised access only</div>
+    <div class="signin-title">Sign in</div>
+    <div class="field-wrap">
+      <div class="label">Username</div>
+      <input type="text" id="uname" placeholder="Username" autocomplete="username"/>
+    </div>
+    <div class="field-wrap">
+      <div class="label">Password</div>
+      <input type="password" id="pwd" placeholder="Password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="err" id="err">⚠ Invalid credentials. Please try again.</div>
+    <button class="btn" onclick="doLogin()">Sign in →</button>
+    <div class="footer-note">Authorised CDSCO personnel only.<br>All sessions are logged for compliance.</div>
   </div>
-  <div class="grid">
-    <div class="card"><div class="cat" style="color:#0052cc;">01 · Privacy</div><div class="ctitle">Anonymisation</div><div class="desc">DPDP Act 2023 compliant PII removal</div></div>
-    <div class="card"><div class="cat" style="color:#0f766e;">02 · Intelligence</div><div class="ctitle">Summarisation</div><div class="desc">SAE reports, checklists, meeting audio</div></div>
-    <div class="card"><div class="cat" style="color:#6d28d9;">03 · Validation</div><div class="ctitle">Completeness</div><div class="desc">Mandatory field verification, flagging</div></div>
-    <div class="card"><div class="cat" style="color:#b45309;">04 · Triage</div><div class="ctitle">Classification</div><div class="desc">SAE severity scoring + duplicate detection</div></div>
-    <div class="card"><div class="cat" style="color:#0369a1;">05 · Diff Engine</div><div class="ctitle">Comparison</div><div class="desc">Semantic + structural dossier diff</div></div>
-    <div class="card"><div class="cat" style="color:#be185d;">06 · Generation</div><div class="ctitle">Inspection Report</div><div class="desc">Typed / handwritten / audio → GCP report</div></div>
-  </div>
-  <div class="badges">
-    <span class="badge">✓ DPDP Act 2023</span>
-    <span class="badge">✓ NDCT Rules 2019</span>
-    <span class="badge">✓ ICMR GCP</span>
-    <span class="badge">✓ MeitY AI Ethics</span>
-  </div>
+
 </div>
-""", height=620)
-
-    with _rcol:
-        st.markdown("""
-<style>
-[data-testid="column"]:last-child .block-container,
-[data-testid="column"]:last-child{background:white;}
-</style>
-""", unsafe_allow_html=True)
-        # Vertical spacer to centre form
-        st.markdown("<div style='height:120px'></div>", unsafe_allow_html=True)
-        st.markdown("""
-<div style="padding:0 32px;">
-  <p style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Authorised access only</p>
-  <p style="font-size:24px;font-weight:700;color:#0a2240;margin-bottom:28px;">Sign in</p>
-</div>
-""", unsafe_allow_html=True)
-
-        with st.container():
-            _uname = st.text_input("Username", placeholder="Username", key="login_uname", label_visibility="collapsed")
-            _pwd   = st.text_input("Password", placeholder="Password", type="password", key="login_pwd", label_visibility="collapsed")
-
-            if st.session_state["_login_failed"]:
-                st.markdown('<p style="color:#dc2626;font-size:12px;">⚠ Invalid credentials. Try again.</p>', unsafe_allow_html=True)
-
-            _do_login = st.button("Sign in →", key="login_btn", use_container_width=True, type="primary")
-
-            st.markdown("""
-<p style="font-size:10px;color:#94a3b8;text-align:center;margin-top:20px;line-height:1.6;">
-  Authorised CDSCO personnel only.<br>All sessions are logged for compliance.
-</p>
-""", unsafe_allow_html=True)
-
-    if _do_login:
-        if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
-            st.session_state["logged_in"]    = True
-            st.session_state["_login_failed"] = False
-            st.rerun()
-        else:
-            st.session_state["_login_failed"] = True
-            st.rerun()
-
+<script>
+var failed = {_failed_msg};
+if(failed) document.getElementById('err').classList.add('show');
+function doLogin(){{
+  var u = document.getElementById('uname').value.trim();
+  var p = document.getElementById('pwd').value;
+  if(u === 'admin' && p === 'nirnay2026'){{
+    window.parent.location.href = window.parent.location.href.split('?')[0] + '?auth=1';
+  }} else {{
+    document.getElementById('err').classList.add('show');
+    document.getElementById('pwd').value = '';
+    document.getElementById('pwd').focus();
+  }}
+}}
+</script>
+</body>
+</html>
+""", height=700, scrolling=False)
     st.stop()
 
 # ── Past login gate ───────────────────────────────────────────────────────────
@@ -220,31 +252,32 @@ def go_to(screen_name: str) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOP BAR
 # ═══════════════════════════════════════════════════════════════════════════════
-tb1, tb2, tb3 = st.columns([3, 3, 1])
-with tb1:
-    st.markdown("""
-<div style="display:flex;align-items:center;gap:12px;">
-  <div style="font-size:22px;font-weight:900;color:#0a2240;letter-spacing:-0.8px;">Nirnay</div>
+st.markdown("""
+<div style="display:flex;align-items:center;gap:14px;padding:8px 0 4px;border-bottom:0.5px solid #e2e8f0;margin-bottom:0;">
+  <div style="font-size:21px;font-weight:900;color:#0a2240;letter-spacing:-0.6px;">Nirnay</div>
   <div style="font-size:12px;color:#475569;font-weight:500;">Regulatory review, <span style="color:#FF9933;">reimagined for India.</span></div>
 </div>
 """, unsafe_allow_html=True)
-with tb2:
-    st.markdown("""
-<div style="display:flex;align-items:center;height:100%;">
-  <div style="background:#fff3cd;border:0.5px solid #ffc107;border-radius:6px;padding:5px 12px;font-size:11px;color:#856404;font-weight:600;">
-    ← Click the arrow on the left edge to expand the sidebar · case packets &amp; workflow
+
+# Sidebar hint strip
+st.markdown("""
+<div style="background:#eff6ff;border-bottom:0.5px solid #bfdbfe;padding:6px 16px;display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span style="font-size:11px;color:#2563eb;font-weight:500;">Expand the sidebar on the left — sample case packets &amp; full review workflow</span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+""" + (f'<span style="font-size:10px;color:#16a34a;font-weight:600;">✓ Claude AI active</span>' if CLAUDE_OK else "") + """
   </div>
 </div>
 """, unsafe_allow_html=True)
-with tb3:
-    col_ai, col_out = st.columns([2, 1])
-    with col_ai:
-        if CLAUDE_OK:
-            st.markdown('<span style="font-size:10px;color:#16a34a;font-weight:600;">✓ Claude AI</span>', unsafe_allow_html=True)
-    with col_out:
-        if st.button("Sign out", key="signout"):
-            st.session_state["logged_in"] = False
-            st.rerun()
+
+# Sign out in sidebar (added via components.py render_sidebar)
+# Standalone sign-out button in top-right
+_so_col1, _so_col2 = st.columns([9, 1])
+with _so_col2:
+    if st.button("Sign out", key="signout"):
+        st.session_state["logged_in"] = False
+        st.query_params.clear()
+        st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN TABS — Features + Workflow
