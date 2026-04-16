@@ -42,115 +42,91 @@ def configure_page() -> None:
 def apply_styles() -> None:
     st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 html,body,[class*="css"]{font-family:'Inter',system-ui,-apple-system,sans-serif;}
-#MainMenu,footer{visibility:hidden;}
-header{visibility:hidden;}
-/* Always keep the sidebar collapse/expand toggle visible */
-[data-testid="collapsedControl"]{visibility:visible!important;display:flex!important;}
+#MainMenu,footer,header{visibility:hidden;}
+/* Sidebar collapse button (sidebar open) — Streamlit 1.40+ */
+[data-testid="stSidebarCollapseButton"]{display:flex!important;visibility:visible!important;opacity:1!important;}
+[data-testid="stSidebarCollapseButton"] button{background-color:#0a1e3d!important;border:none!important;border-radius:6px!important;width:32px!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;}
+[data-testid="stSidebarCollapseButton"] svg{display:none!important;}
+[data-testid="stSidebarCollapseButton"] button::before{content:'☰';font-size:16px;color:rgba(255,255,255,0.9);font-family:Arial,sans-serif;line-height:1;}
+/* Sidebar expand control (sidebar collapsed) — Streamlit 1.40+ */
+[data-testid="stSidebarCollapsedControl"]{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;top:60px!important;left:0!important;z-index:99999!important;}
+[data-testid="stSidebarCollapsedControl"] button{background-color:#0a1e3d!important;border:none!important;border-radius:0 8px 8px 0!important;width:28px!important;height:44px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;box-shadow:2px 0 8px rgba(0,0,0,0.25)!important;}
+[data-testid="stSidebarCollapsedControl"] svg{display:none!important;}
+[data-testid="stSidebarCollapsedControl"] button::before{content:'☰';font-size:16px;color:rgba(255,255,255,0.9);font-family:Arial,sans-serif;line-height:1;}
 
-/* ── App background ── */
-.stApp{background:linear-gradient(155deg,#edf1f7 0%,#f4f7fb 55%,#eaeff7 100%)!important;}
+.stApp{background-color:#f0f4f8;}
 
-/* ── Sidebar ── */
-section[data-testid="stSidebar"]{background:linear-gradient(180deg,#050d1a 0%,#0a1e3d 50%,#0d2a52 100%)!important;border-right:1px solid rgba(255,255,255,0.04)!important;}
-section[data-testid="stSidebar"] *{color:white!important;}
-section[data-testid="stSidebar"] .stMarkdown p{color:rgba(255,255,255,0.78)!important;}
-section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,255,0.09)!important;border:1px solid rgba(255,255,255,0.18)!important;border-radius:9px!important;}
-section[data-testid="stSidebar"] h2,section[data-testid="stSidebar"] h3{color:white!important;font-weight:700!important;}
+section[data-testid="stSidebar"]{background-color:#0a1e3d;}
+section[data-testid="stSidebar"] *{color:white;}
+section[data-testid="stSidebar"] p{color:rgba(255,255,255,0.75);}
+section[data-testid="stSidebar"] .stSelectbox>div>div{background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;}
+section[data-testid="stSidebar"] h2,section[data-testid="stSidebar"] h3{color:white;}
 
-/* ── Hero / Banner ── */
-.hero{background:linear-gradient(135deg,#050d1a 0%,#0a1e3d 40%,#0d3366 100%);border-radius:16px;padding:28px 36px;margin-bottom:18px;box-shadow:0 8px 32px rgba(5,13,26,0.25),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.05);position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;top:-40%;right:-5%;width:380px;height:380px;background:radial-gradient(circle,rgba(255,153,51,0.07) 0%,transparent 70%);pointer-events:none;}
-.hero h1{color:white;font-size:22px;font-weight:800;margin:0;letter-spacing:-0.3px;}
-.hero .sub{color:rgba(255,255,255,0.62);font-size:13px;margin:5px 0 0;line-height:1.6;}
-.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
-.hbadge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.82);font-weight:500;}
-.hbadge.g{border-color:rgba(74,222,128,0.5);color:#4ade80;background:rgba(74,222,128,0.08);}
+.hero{background-color:#0a1e3d;border-radius:14px;padding:28px 32px;margin-bottom:16px;}
+.hero h1{color:white;font-size:22px;font-weight:800;margin:0;}
+.hero .sub{color:rgba(255,255,255,0.65);font-size:13px;margin:5px 0 0;line-height:1.6;}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.hbadge{background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.85);font-weight:500;}
+.hbadge.g{border-color:#4ade80;color:#4ade80;background-color:rgba(74,222,128,0.08);}
 
-/* ── Cards ── */
-.card{background:white;border:1px solid rgba(10,34,64,0.09);border-radius:16px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(10,34,64,0.07),0 1px 4px rgba(10,34,64,0.04);margin-bottom:1rem;}
-.case-chip{display:inline-block;background:rgba(0,82,204,0.08);color:#0052cc;border:1px solid rgba(0,82,204,0.2);border-radius:999px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;}
-.small-note{color:#5c6b7a;font-size:0.9rem;}
+.card{background-color:white;border:1px solid #e2e8f0;border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.case-chip{display:inline-block;background-color:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;}
+.small-note{color:#64748b;font-size:13px;}
 
-/* ── Section headers ── */
-.sec-hd{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:16px;border-bottom:1.5px solid #e8edf4;}
-.sec-ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
-.ic-blue{background:linear-gradient(135deg,#dbeafe,#bfdbfe);}.ic-teal{background:linear-gradient(135deg,#ccfbf1,#99f6e4);}
-.ic-purple{background:linear-gradient(135deg,#ede9fe,#ddd6fe);}.ic-amber{background:linear-gradient(135deg,#fef3c7,#fde68a);}
-.ic-sky{background:linear-gradient(135deg,#e0f2fe,#bae6fd);}.ic-pink{background:linear-gradient(135deg,#fce7f3,#fbcfe8);}
-.sec-hd h2{font-size:18px;font-weight:700;color:#0f1c2e;margin:0;letter-spacing:-0.2px;}
-.sec-hd p{font-size:12.5px;color:#64748b;margin:3px 0 0;line-height:1.5;}
+.sec-hd{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #e2e8f0;}
+.sec-ic{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ic-blue{background-color:#dbeafe;}.ic-teal{background-color:#ccfbf1;}.ic-purple{background-color:#ede9fe;}
+.ic-amber{background-color:#fef3c7;}.ic-sky{background-color:#e0f2fe;}.ic-pink{background-color:#fce7f3;}
+.sec-hd h2{font-size:17px;font-weight:700;color:#0f172a;margin:0;}
+.sec-hd p{font-size:12px;color:#64748b;margin:3px 0 0;line-height:1.5;}
 
-/* ── Upload card ── */
-.upload-card{background:white;border:2px dashed #c8d8eb;border-radius:16px;padding:22px 24px;box-shadow:0 2px 12px rgba(10,34,64,0.04);margin-bottom:14px;transition:border-color 0.2s;}
-.upload-card:hover{border-color:#FF9933;}
-.upload-card h4{color:#0f1c2e;font-size:14px;font-weight:600;margin:0 0 10px;}
-.or-line{display:flex;align-items:center;gap:10px;margin:12px 0;color:#94a3b8;font-size:12px;font-weight:500;}
-.or-line::before,.or-line::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+.upload-card{background-color:white;border:2px dashed #cbd5e1;border-radius:14px;padding:20px 22px;margin-bottom:14px;}
+.upload-card h4{color:#0f172a;font-size:14px;font-weight:600;margin:0 0 10px;}
+.or-line{display:flex;align-items:center;gap:10px;margin:10px 0;color:#94a3b8;font-size:12px;}
+.or-line::before,.or-line::after{content:'';flex:1;height:1px;background-color:#e2e8f0;}
 
-/* ── PII chips ── */
-.pii-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;}
-.chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 12px;font-size:11.5px;font-weight:600;}
-.cr{background:#fee2e2;color:#991b1b;}.ca{background:#fef3c7;color:#92400e;}
-.cb{background:#dbeafe;color:#1e40af;}.cp{background:#ede9fe;color:#5b21b6;}
-.ct{background:#ccfbf1;color:#065f46;}.cg{background:#f1f5f9;color:#475569;}
+.pii-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;}
+.cr{background-color:#fee2e2;color:#991b1b;}.ca{background-color:#fef3c7;color:#92400e;}
+.cb{background-color:#dbeafe;color:#1e40af;}.cp{background-color:#ede9fe;color:#5b21b6;}
+.ct{background-color:#ccfbf1;color:#065f46;}.cg{background-color:#f1f5f9;color:#475569;}
 
-/* ── Result / status cards ── */
-.rc{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:8px 0;border-left:4px solid #0052cc;font-size:13px;line-height:1.6;}
-.rc.ok{border-left-color:#16a34a;background:#f0fdf4;color:#14532d;}
-.rc.warn{border-left-color:#d97706;background:#fffbeb;color:#78350f;}
-.rc.err{border-left-color:#dc2626;background:#fef2f2;color:#7f1d1d;}
-.rc.info{border-left-color:#0284c7;background:#f0f9ff;color:#0c4a6e;}
+.rc{background-color:white;border-radius:8px;padding:13px 16px;margin:8px 0;border-left:4px solid #003087;font-size:13px;line-height:1.6;}
+.rc.ok{border-left-color:#16a34a;background-color:#f0fdf4;color:#15803d;}
+.rc.warn{border-left-color:#d97706;background-color:#fffbeb;color:#92400e;}
+.rc.err{border-left-color:#dc2626;background-color:#fef2f2;color:#b91c1c;}
+.rc.info{border-left-color:#0284c7;background-color:#f0f9ff;color:#0369a1;}
 
-/* ── Table wrapper ── */
-.tw{background:white;border-radius:12px;padding:6px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin:8px 0;border:1px solid rgba(10,34,64,0.07);}
+.tw{background-color:white;border-radius:10px;padding:4px;margin:8px 0;border:1px solid #e2e8f0;}
+.dup-session{background-color:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:13px;color:#0369a1;line-height:1.6;}
+.audio-note{background-color:#fefce8;border:1px solid #fbbf24;border-radius:8px;padding:8px 12px;font-size:12px;color:#78350f;margin:8px 0;}
+.entity-box{background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-size:13px;min-height:140px;white-space:pre-wrap;line-height:1.6;}
 
-/* ── Misc helpers ── */
-.dup-session{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 18px;margin-bottom:12px;font-size:13px;color:#0369a1;line-height:1.6;}
-.audio-note{background:#fef9c3;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;font-size:12px;color:#78350f;margin:8px 0;}
-.entity-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;font-size:13px;min-height:160px;white-space:pre-wrap;line-height:1.6;}
+.stTabs [data-baseweb="tab-list"]{background-color:#0a1628;border-radius:10px;padding:4px;gap:2px;}
+.stTabs [data-baseweb="tab"]{border-radius:7px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.55);padding:8px 14px;}
+.stTabs [aria-selected="true"]{background-color:#0052cc!important;color:white!important;}
+.stTabs [data-baseweb="tab"]:hover{color:white!important;}
+.stTabs [data-baseweb="tab-border"]{display:none;}
+.stTabs [data-baseweb="tab-panel"]{background-color:white;border-radius:0 0 12px 12px;padding:20px!important;}
 
-/* ── Tabs ── */
-.stTabs [data-baseweb="tab-list"]{background:#0a1628!important;border-radius:12px!important;padding:5px!important;gap:2px!important;box-shadow:0 4px 16px rgba(5,13,26,0.3)!important;}
-.stTabs [data-baseweb="tab"]{border-radius:8px!important;font-size:12px!important;font-weight:500!important;color:rgba(255,255,255,0.5)!important;padding:8px 14px!important;transition:all 0.2s!important;}
-.stTabs [data-baseweb="tab"]:hover{color:rgba(255,255,255,0.85)!important;}
-.stTabs [aria-selected="true"]{background:linear-gradient(135deg,#0052cc,#0077cc)!important;color:white!important;box-shadow:0 2px 8px rgba(0,82,204,0.35)!important;}
-.stTabs [data-baseweb="tab-border"]{display:none!important;}
-.stTabs [data-baseweb="tab-panel"]{background:white!important;border-radius:0 0 14px 14px!important;padding:22px!important;box-shadow:0 4px 16px rgba(10,34,64,0.06)!important;border:1px solid rgba(10,34,64,0.07)!important;border-top:none!important;}
+.stButton>button[kind="primary"]{background-color:#003087!important;color:white!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:13px!important;padding:9px 18px!important;}
+.stButton>button[kind="primary"]:hover{background-color:#0052cc!important;}
+.stButton>button:not([kind="primary"]){border-radius:8px!important;font-size:13px!important;font-weight:500!important;}
+.stDownloadButton>button{border-radius:8px!important;border:1.5px solid #003087!important;color:#003087!important;font-weight:500!important;font-size:13px!important;}
+.stTextArea textarea{border:1.5px solid #e2e8f0!important;border-radius:8px!important;font-size:13px!important;background-color:#fafbfc!important;}
+.stTextInput input{border-radius:8px!important;font-size:13px!important;}
+[data-testid="stMetricValue"]{font-size:24px!important;font-weight:700!important;}
+[data-testid="stMetricLabel"]{font-size:12px!important;color:#64748b!important;}
+[data-testid="stExpander"]{border:1px solid #e2e8f0!important;border-radius:10px!important;}
+[data-testid="stProgressBar"]>div>div{background-color:#003087!important;border-radius:99px!important;}
+[data-testid="stProgressBar"]>div{border-radius:99px!important;background-color:#e2e8f0!important;}
 
-/* ── Buttons ── */
-.stButton>button[kind="primary"]{background:linear-gradient(135deg,#0a2240 0%,#003087 100%)!important;color:white!important;border:none!important;border-radius:9px!important;font-weight:600!important;font-size:13px!important;padding:9px 18px!important;box-shadow:0 4px 12px rgba(10,34,64,0.25)!important;transition:all 0.2s!important;letter-spacing:0.01em!important;}
-.stButton>button[kind="primary"]:hover{background:linear-gradient(135deg,#003087 0%,#0052cc 100%)!important;box-shadow:0 6px 18px rgba(10,34,64,0.35)!important;transform:translateY(-1px)!important;}
-.stButton>button:not([kind="primary"]){border-radius:9px!important;font-size:13px!important;font-weight:500!important;transition:all 0.2s!important;}
-.stButton>button:not([kind="primary"]):hover{border-color:#0052cc!important;color:#0052cc!important;}
-.stDownloadButton>button{border-radius:9px!important;border:1.5px solid #0052cc!important;color:#0052cc!important;font-weight:500!important;font-size:13px!important;transition:all 0.2s!important;}
-.stDownloadButton>button:hover{background:rgba(0,82,204,0.05)!important;box-shadow:0 2px 8px rgba(0,82,204,0.15)!important;}
-
-/* ── Form fields ── */
-.stTextArea textarea{border:1.5px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;background:#fafbfc!important;line-height:1.6!important;transition:border-color 0.2s!important;}
-.stTextArea textarea:focus{border-color:#0052cc!important;box-shadow:0 0 0 2px rgba(0,82,204,0.08)!important;}
-.stTextInput input{border-radius:9px!important;border:1.5px solid #e2e8f0!important;font-size:13px!important;transition:border-color 0.2s!important;}
-.stTextInput input:focus{border-color:#0052cc!important;box-shadow:0 0 0 2px rgba(0,82,204,0.08)!important;}
-
-/* ── Metrics ── */
-[data-testid="stMetricValue"]{font-size:26px!important;font-weight:800!important;color:#0a1628!important;}
-[data-testid="stMetricLabel"]{font-size:12px!important;color:#64748b!important;font-weight:500!important;}
-[data-testid="metric-container"]{background:white!important;border-radius:12px!important;padding:14px 18px!important;box-shadow:0 2px 8px rgba(10,34,64,0.07)!important;border:1px solid rgba(10,34,64,0.07)!important;}
-
-/* ── Expanders ── */
-.streamlit-expanderHeader{font-weight:600!important;font-size:13px!important;color:#0f1c2e!important;}
-[data-testid="stExpander"]{border:1px solid #e2e8f0!important;border-radius:12px!important;box-shadow:0 1px 4px rgba(0,0,0,0.04)!important;}
-
-/* ── Progress bar ── */
-[data-testid="stProgressBar"]>div>div{background:linear-gradient(90deg,#0052cc,#0077b6)!important;border-radius:99px!important;}
-[data-testid="stProgressBar"]>div{border-radius:99px!important;background:#e2e8f0!important;}
-
-/* ── Alerts ── */
-[data-testid="stAlert"]{border-radius:10px!important;font-size:13px!important;}
-
-/* ── Selectbox ── */
-[data-testid="stSelectbox"]>div>div{border-radius:9px!important;font-size:13px!important;}
+/* Top nav breadcrumb button row */
+.nav-btn-active>button{background-color:#003087!important;color:white!important;border:none!important;border-radius:8px!important;font-weight:600!important;}
+.nav-btn-inactive>button{background-color:white!important;color:#374151!important;border:1.5px solid #e2e8f0!important;border-radius:8px!important;font-weight:500!important;}
+.nav-btn-inactive>button:hover{border-color:#003087!important;color:#003087!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -367,19 +343,17 @@ def generate_audit_packet() -> dict:
 def render_banner(title: str, subtitle: str) -> None:
     st.markdown(f"""
 <div class="hero">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,153,51,0.9);background:rgba(255,153,51,0.12);border:1px solid rgba(255,153,51,0.25);border-radius:20px;padding:3px 10px;">{DEMO_MODE_LABEL}</span>
-  </div>
+  <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,153,51,0.9);margin:0 0 8px;">{DEMO_MODE_LABEL}</p>
   <h1>{title}</h1>
   <p class="sub">{subtitle}</p>
   <div class="hero-badges">
-    <span class="hbadge g">✓ DPDP Act 2023</span>
-    <span class="hbadge g">✓ NDCT Rules 2019</span>
-    <span class="hbadge g">✓ Schedule Y</span>
-    <span class="hbadge g">✓ ICMR GCP</span>
-    <span class="hbadge g">✓ MeitY AI Ethics</span>
+    <span class="hbadge g">&#10003; DPDP Act 2023</span>
+    <span class="hbadge g">&#10003; NDCT Rules 2019</span>
+    <span class="hbadge g">&#10003; Schedule Y</span>
+    <span class="hbadge g">&#10003; ICMR GCP</span>
+    <span class="hbadge g">&#10003; MeitY AI Ethics</span>
   </div>
-  <p style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5;">{APP_DISCLAIMER}</p>
+  <p style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.4);line-height:1.5;">{APP_DISCLAIMER}</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -427,6 +401,73 @@ def render_sidebar() -> str:
     return screen
 
 
+def render_top_nav() -> str:
+    """Always-visible nav bar: case packet selector + workflow breadcrumb buttons."""
+    _STEP_LABELS = {
+        "Command Dashboard": "🏠 Dashboard",
+        "Document Intake":   "📥 Intake",
+        "Protected View":    "🔒 Protected",
+        "SAE Review":        "🧪 SAE Review",
+        "Version Compare":   "🔍 Compare",
+        "Audit Trail":       "📋 Audit Trail",
+    }
+
+    # Row 1: Case packet selector + live status
+    c1, c2, c3 = st.columns([3, 5, 2])
+    with c1:
+        st.caption("CASE PACKET")
+        case_key = st.selectbox(
+            "Active packet",
+            options=list(st.session_state.demo_cases.keys()),
+            index=list(st.session_state.demo_cases.keys()).index(
+                st.session_state.active_case_key),
+            format_func=lambda k: st.session_state.demo_cases[k]["title"],
+            key="tnav_pkt",
+            label_visibility="collapsed",
+        )
+        if case_key != st.session_state.active_case_key:
+            set_active_case(case_key)
+
+    case = get_active_case()
+    with c2:
+        st.caption("ACTIVE CASE")
+        st.markdown(
+            f'<p style="font-size:12px;color:#374151;margin:0;line-height:1.5;">'
+            f'<b style="color:#0a2240;">{case["title"]}</b> &nbsp;·&nbsp; '
+            f'Stage: <b style="color:#1d4ed8;">{case["current_stage"]}</b> &nbsp;·&nbsp; '
+            f'Status: <b style="color:#15803d;">{case["status"]}</b></p>',
+            unsafe_allow_html=True,
+        )
+    with c3:
+        st.caption("HACKATHON")
+        st.markdown(
+            '<p style="font-size:11px;color:#6b7280;margin:0;">IndiaAI / CDSCO 2026<br>'
+            '<span style="color:#f97316;font-weight:600;">Stage 1</span></p>',
+            unsafe_allow_html=True,
+        )
+
+    st.divider()
+
+    # Row 2: Workflow step breadcrumb
+    st.caption("REVIEW WORKFLOW")
+    step_cols = st.columns(len(SCREENS))
+    for i, (scr, col) in enumerate(zip(SCREENS, step_cols)):
+        with col:
+            is_active = st.session_state.screen == scr
+            label = _STEP_LABELS.get(scr, scr)
+            if st.button(
+                label,
+                key=f"tnav_{i}",
+                use_container_width=True,
+                type="primary" if is_active else "secondary",
+            ):
+                st.session_state.screen = scr
+                st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    return st.session_state.screen
+
+
 def render_metrics() -> None:
     cols = st.columns(3)
     for i, m in enumerate(LEADERSHIP_METRICS):
@@ -446,26 +487,23 @@ def render_case_header(case: dict) -> None:
 
 def ai_recommendation_card(finding: str, risk_level: str, action: str, detail: str = "") -> None:
     palette = {
-        "Critical": {"bg":"#fef2f2","border":"#fca5a5","accent":"#dc2626","badge_bg":"#fee2e2","badge_fg":"#991b1b","icon":"🔴"},
-        "High":     {"bg":"#fff7ed","border":"#fed7aa","accent":"#ea580c","badge_bg":"#ffedd5","badge_fg":"#9a3412","icon":"🟠"},
-        "Medium":   {"bg":"#fefce8","border":"#fef08a","accent":"#ca8a04","badge_bg":"#fef9c3","badge_fg":"#854d0e","icon":"🟡"},
-        "Low":      {"bg":"#f0fdf4","border":"#bbf7d0","accent":"#16a34a","badge_bg":"#dcfce7","badge_fg":"#166534","icon":"🟢"},
+        "Critical": {"bg":"#fef2f2","border_l":"#dc2626","badge_bg":"#fee2e2","badge_fg":"#991b1b","icon":"🔴"},
+        "High":     {"bg":"#fff7ed","border_l":"#ea580c","badge_bg":"#ffedd5","badge_fg":"#9a3412","icon":"🟠"},
+        "Medium":   {"bg":"#fefce8","border_l":"#ca8a04","badge_bg":"#fef9c3","badge_fg":"#854d0e","icon":"🟡"},
+        "Low":      {"bg":"#f0fdf4","border_l":"#16a34a","badge_bg":"#dcfce7","badge_fg":"#166534","icon":"🟢"},
     }
     p = palette.get(risk_level, palette["Medium"])
     st.markdown(f"""
-<div style="border-radius:14px;padding:20px 24px;margin:16px 0;background:{p['bg']};border:1px solid {p['border']};border-left:5px solid {p['accent']};box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+<div style="border-radius:12px;padding:18px 22px;margin:14px 0;background-color:{p['bg']};border-left:5px solid {p['border_l']};border-top:1px solid {p['badge_bg']};border-right:1px solid {p['badge_bg']};border-bottom:1px solid {p['badge_bg']};">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
     <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-        <div style="width:5px;height:5px;border-radius:50%;background:{p['accent']};flex-shrink:0;"></div>
-        <span style="font-size:10px;font-weight:700;color:{p['accent']};letter-spacing:.12em;text-transform:uppercase;">AI Recommendation</span>
-      </div>
-      <div style="font-size:15px;font-weight:700;color:#0f1c2e;margin-bottom:6px;line-height:1.4;">{finding}</div>
-      <div style="font-size:13px;color:#475569;line-height:1.6;">{action}</div>
-      {f'<div style="font-size:11px;color:#64748b;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.07);">{detail}</div>' if detail else ""}
+      <p style="font-size:10px;font-weight:700;color:{p['border_l']};letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px;">AI Recommendation</p>
+      <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 5px;line-height:1.4;">{finding}</p>
+      <p style="font-size:13px;color:#475569;margin:0;line-height:1.6;">{action}</p>
+      {f'<p style="font-size:11px;color:#64748b;margin:6px 0 0;padding-top:6px;border-top:1px solid rgba(0,0,0,0.08);">{detail}</p>' if detail else ""}
     </div>
-    <div style="flex-shrink:0;text-align:center;">
-      <div style="background:{p['badge_bg']};color:{p['badge_fg']};border-radius:10px;padding:9px 18px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid {p['border']};white-space:nowrap;">{p['icon']} {risk_level} Risk</div>
+    <div style="flex-shrink:0;">
+      <span style="display:inline-block;background-color:{p['badge_bg']};color:{p['badge_fg']};border-radius:8px;padding:8px 16px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">{p['icon']} {risk_level} Risk</span>
     </div>
   </div>
 </div>
@@ -474,15 +512,15 @@ def ai_recommendation_card(finding: str, risk_level: str, action: str, detail: s
 
 def compliance_ribbon() -> None:
     st.markdown("""
-<div style="margin-top:40px;padding:16px 20px;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(10,34,64,0.05);border:1px solid rgba(10,34,64,0.07);">
-  <div style="display:flex;gap:12px;flex-wrap:wrap;flex:1;align-items:center;">
-    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>DPDP Act 2023</span>
-    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>NDCT Rules 2019</span>
-    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>ICMR GCP Guidelines</span>
-    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>MeitY AI Ethics</span>
-    <span style="font-size:10px;font-weight:700;color:#0052cc;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(0,82,204,0.08);border:1px solid rgba(0,82,204,0.2);border-radius:4px;padding:1px 5px;">✓</span>Schedule Y</span>
+<div style="margin-top:32px;padding:14px 20px;border-top:1px solid #e2e8f0;display:flex;align-items:center;flex-wrap:wrap;gap:14px;background-color:white;border-radius:12px;border:1px solid #e2e8f0;">
+  <div style="display:flex;gap:14px;flex-wrap:wrap;flex:1;align-items:center;">
+    <span style="font-size:11px;font-weight:600;color:#059669;">&#10003; DPDP Act 2023</span>
+    <span style="font-size:11px;font-weight:600;color:#059669;">&#10003; NDCT Rules 2019</span>
+    <span style="font-size:11px;font-weight:600;color:#059669;">&#10003; ICMR GCP Guidelines</span>
+    <span style="font-size:11px;font-weight:600;color:#059669;">&#10003; MeitY AI Ethics</span>
+    <span style="font-size:11px;font-weight:600;color:#1d4ed8;">&#10003; Schedule Y</span>
   </div>
-  <span style="font-size:10px;color:#94a3b8;font-weight:500;white-space:nowrap;">© 2026 Nirnay · IndiaAI / CDSCO Hackathon</span>
+  <span style="font-size:10px;color:#9ca3af;">&#169; 2026 Nirnay &middot; IndiaAI / CDSCO Hackathon</span>
 </div>
 """, unsafe_allow_html=True)
 

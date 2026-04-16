@@ -61,6 +61,7 @@ from components import (
     render_case_header,
     render_metrics,
     render_sidebar,
+    render_top_nav,
     run_classification,
     save_active_case,
     set_screen,
@@ -103,25 +104,23 @@ VALID_PASS = "nirnay2026"
 if not st.session_state["logged_in"]:
     st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-*{font-family:'Inter',system-ui,sans-serif!important;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+*{font-family:'Inter',system-ui,sans-serif;}
 section[data-testid="stSidebar"]{display:none!important;}
 header{display:none!important;}
 footer{display:none!important;}
-.stApp{background:#050d1a!important;}
+.stApp{background-color:#060f1e!important;}
 .block-container{padding:0!important;max-width:100%!important;}
 [data-testid="column"]{padding:0!important;}
-[data-testid="column"]:first-child{background:linear-gradient(160deg,#060f1e 0%,#081828 100%)!important;padding:56px 52px!important;border-right:1px solid rgba(255,255,255,0.04)!important;min-height:100vh!important;}
-[data-testid="column"]:last-child{background:linear-gradient(160deg,#0c1d38 0%,#0e2244 100%)!important;padding:56px 52px!important;min-height:100vh!important;}
-/* Input styling */
-[data-testid="stTextInput"] input{background:#071224!important;border:1.5px solid rgba(255,255,255,0.16)!important;border-radius:10px!important;color:#f1f5f9!important;font-size:14px!important;caret-color:#FF9933!important;padding:11px 14px!important;transition:all 0.2s!important;}
-[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;box-shadow:0 0 0 3px rgba(255,153,51,0.12)!important;background:#081428!important;}
-[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.28)!important;}
-[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.7)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.1em!important;text-transform:uppercase!important;margin-bottom:5px!important;}
-/* Submit button */
-[data-testid="stFormSubmitButton"] button{background:linear-gradient(135deg,#FF9933,#e8821a)!important;border:none!important;border-radius:10px!important;color:white!important;font-size:14px!important;font-weight:700!important;width:100%!important;padding:13px!important;box-shadow:0 4px 18px rgba(255,153,51,0.3)!important;letter-spacing:0.02em!important;transition:all 0.2s!important;}
-[data-testid="stFormSubmitButton"] button:hover{background:linear-gradient(135deg,#ffab45,#FF9933)!important;box-shadow:0 6px 24px rgba(255,153,51,0.42)!important;transform:translateY(-1px)!important;}
-[data-testid="stForm"]{border:none!important;padding:0!important;background:transparent!important;}
+[data-testid="column"]:first-child{background-color:#071428!important;padding:52px 48px!important;border-right:1px solid rgba(255,255,255,0.05)!important;}
+[data-testid="column"]:last-child{background-color:#0d1f3c!important;padding:52px 48px!important;}
+[data-testid="stTextInput"] input{background-color:#071224!important;border:1.5px solid rgba(255,255,255,0.18)!important;border-radius:9px!important;color:#f1f5f9!important;font-size:14px!important;}
+[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;outline:none!important;}
+[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.3)!important;}
+[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.7)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.1em!important;text-transform:uppercase!important;}
+[data-testid="stFormSubmitButton"] button{background-color:#FF9933!important;border:none!important;border-radius:9px!important;color:white!important;font-size:14px!important;font-weight:700!important;width:100%!important;padding:13px!important;}
+[data-testid="stFormSubmitButton"] button:hover{background-color:#e8821a!important;}
+[data-testid="stForm"]{border:none!important;padding:0!important;background-color:transparent!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -129,34 +128,77 @@ footer{display:none!important;}
 
     # ── LEFT COLUMN — pure HTML, zero Streamlit widgets ──────────────────────
     with _lcol:
-        st.markdown("""
-<div style="font-family:'Inter',system-ui,sans-serif;min-height:640px;display:flex;flex-direction:column;">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-    <div style="width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
-    </div>
-    <span style="font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;">Nirnay</span>
-    <span style="font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;">AI Review System</span>
-  </div>
-  <div style="width:36px;height:2px;background:#FF9933;border-radius:2px;margin:10px 0 18px;"></div>
-  <div style="font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;">Regulatory review,<br><span style="color:#FF9933;">reimagined for India.</span></div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;margin-bottom:22px;">All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px;flex:1;">
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0052cc;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#60a5fa;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">01 · Privacy</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Anonymisation</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">DPDP Act 2023 · two-step PII removal</div></div>
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0f766e;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#34d399;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">02 · Intelligence</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Summarisation</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">SAE · checklists · meeting audio</div></div>
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #6d28d9;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#a78bfa;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">03 · Validation</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Completeness</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">20 mandatory fields · RAG flagging</div></div>
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #b45309;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#fbbf24;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">04 · Triage</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Classification</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">SAE severity · duplicate detection</div></div>
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0369a1;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#38bdf8;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">05 · Diff Engine</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Comparison</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">Semantic + structural dossier diff</div></div>
-    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #be185d;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#f472b6;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">06 · Generation</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Inspection Report</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">Typed / audio → CDSCO GCP report</div></div>
-  </div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);">
-    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ DPDP Act 2023</span>
-    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ NDCT Rules 2019</span>
-    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ ICMR GCP</span>
-    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ MeitY AI Ethics</span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-family:Inter,system-ui,sans-serif;min-height:640px;display:flex;flex-direction:column;">'
+
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+            '<div style="width:36px;height:36px;border-radius:9px;background-color:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>'
+            '</div>'
+            '<span style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.5px;">Nirnay</span>'
+            '<span style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 10px;">AI Review System</span>'
+            '</div>'
+
+            '<div style="width:32px;height:2px;background-color:#FF9933;border-radius:2px;margin-bottom:20px;"></div>'
+
+            '<div style="font-size:20px;font-weight:700;color:white;line-height:1.35;margin-bottom:8px;">'
+            'Regulatory review,<br><span style="color:#FF9933;">reimagined for India.</span>'
+            '</div>'
+
+            '<div style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.45);line-height:1.7;margin-bottom:24px;">'
+            'All 6 CDSCO-mandated AI features in one platform.<br>Upload real documents — structured outputs in seconds.'
+            '</div>'
+
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;flex:1;">'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #3b82f6;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">01 &middot; Privacy</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Anonymisation</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">DPDP Act 2023 &middot; two-step PII removal</div>'
+            '</div>'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #10b981;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#34d399;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">02 &middot; Intelligence</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Summarisation</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">SAE &middot; checklists &middot; meeting audio</div>'
+            '</div>'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #8b5cf6;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">03 &middot; Validation</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Completeness</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">20 mandatory fields &middot; RAG flagging</div>'
+            '</div>'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #f59e0b;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#fbbf24;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">04 &middot; Triage</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Classification</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">SAE severity &middot; duplicate detection</div>'
+            '</div>'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #0ea5e9;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#38bdf8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">05 &middot; Diff Engine</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Comparison</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">Semantic + structural dossier diff</div>'
+            '</div>'
+
+            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #ec4899;border-radius:10px;padding:14px;">'
+            '<div style="font-size:11px;font-weight:700;color:#f472b6;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">06 &middot; Generation</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Inspection Report</div>'
+            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">Typed / audio &#8594; CDSCO GCP report</div>'
+            '</div>'
+
+            '</div>'
+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07);">'
+            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; DPDP Act 2023</span>'
+            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; NDCT Rules 2019</span>'
+            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; ICMR GCP</span>'
+            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; MeitY AI Ethics</span>'
+            '</div>'
+
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
     # ── RIGHT COLUMN — st.form only, zero unclosed HTML ───────────────────────
     with _rcol:
@@ -208,8 +250,8 @@ footer{display:none!important;}
     st.stop()
 
 # ── Past login gate ───────────────────────────────────────────────────────────
-screen = render_sidebar()
-case   = get_active_case()
+render_sidebar()
+case = get_active_case()
 
 
 def go_to(screen_name: str) -> None:
@@ -221,32 +263,22 @@ def go_to(screen_name: str) -> None:
 # TOP BAR
 # ═══════════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="background:white;border-radius:14px;padding:14px 22px;margin-bottom:12px;box-shadow:0 2px 12px rgba(10,34,64,0.08);border:1px solid rgba(10,34,64,0.07);display:flex;align-items:center;gap:14px;">
-  <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0a2240,#003087);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(10,34,64,0.3);">
+<div style="background-color:white;border-radius:12px;padding:14px 22px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1px solid #e2e8f0;display:flex;align-items:center;gap:14px;">
+  <div style="width:34px;height:34px;border-radius:9px;background-color:#003087;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
   </div>
   <span style="font-size:20px;font-weight:800;color:#0a2240;letter-spacing:-0.5px;">Nirnay</span>
-  <span style="font-size:12px;color:#94a3b8;border-left:1.5px solid #e8edf4;padding-left:14px;margin-left:2px;font-weight:400;">CDSCO AI Review Platform</span>
-  <span style="font-size:10px;font-weight:700;color:#FF9933;background:rgba(255,153,51,0.08);border:1px solid rgba(255,153,51,0.25);border-radius:20px;padding:3px 11px;margin-left:4px;letter-spacing:0.02em;">IndiaAI Hackathon 2026</span>
+  <span style="font-size:12px;color:#9ca3af;border-left:1px solid #e5e7eb;padding-left:14px;margin-left:2px;">CDSCO AI Review Platform</span>
+  <span style="font-size:10px;font-weight:700;color:#f97316;background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:3px 11px;margin-left:4px;">IndiaAI Hackathon 2026</span>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar hint strip
-st.markdown("""
-<div style="background:linear-gradient(135deg,#0a2240,#003087);padding:11px 20px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border-radius:11px;box-shadow:0 3px 12px rgba(10,34,64,0.2);">
-  <div style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);">
-    <span style="font-size:14px;color:white;font-weight:700;">›</span>
-  </div>
-  <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.9);flex:1;">Open the <b style="color:white;font-weight:700;">sidebar</b> (top-left <b style="background:rgba(255,255,255,0.15);padding:1px 8px;border-radius:4px;font-size:12px;">▸</b>) to switch sample case packets and walk the full CDSCO reviewer workflow</span>
-  <div style="flex-shrink:0;display:flex;gap:6px;">
-    <span style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:500;white-space:nowrap;">6 AI features · Live processing</span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
 
-# Sign out in sidebar (added via components.py render_sidebar)
-# Standalone sign-out button in top-right
-_so_col1, _so_col2 = st.columns([9, 1])
+# ── Always-visible nav bar: case selector + workflow breadcrumb ───────────────
+screen = render_top_nav()
+
+# Sign-out (tucked right, below nav bar)
+_so_col1, _so_col2 = st.columns([11, 1])
 with _so_col2:
     if st.button("Sign out", key="signout"):
         st.session_state["logged_in"] = False
