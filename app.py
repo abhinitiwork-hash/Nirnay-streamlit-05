@@ -18,7 +18,7 @@ FOR JUDGES:
 FEATURES (per CDSCO-IndiaAI Hackathon Guidelines, Section 3.I):
     01 Anonymisation     — PII/PHI detection, two-step DPDP Act 2023 process
     02 Summarisation     — SAE narration, SUGAM checklist, meeting transcripts
-    03 Completeness      — Schedule Y / Form CT mandatory field assessment
+    03 Completeness      — NDCT Rules 2019 / Form CT mandatory field assessment
     04 Classification    — SAE severity grading + duplicate detection
     05 Comparison        — Semantic document diff, substantive change flagging
     06 Inspection Report — CDSCO GCP site inspection report generator
@@ -288,16 +288,17 @@ with _so_col2:
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN TABS — Features + Workflow
 # ═══════════════════════════════════════════════════════════════════════════════
-(t_home, t_anon, t_sum, t_comp, t_cls, t_cmp, t_insp,
- t_workflow) = st.tabs([
-    "🏠 Home",
-    "🔒 Anonymisation",
+(t_cmd_dash, t_doc_intake, t_anon, t_sum, t_comp, t_cls, t_cmp, t_sae_review,
+ t_audit_trail) = st.tabs([
+    "🖥️ Command Dashboard",
+    "📥 Document Intake",
+    "🔒 Protected View",
     "📄 Summarisation",
-    "✅ Completeness",
+    "✅ Completeness Check",
     "🏷️ Classification",
-    "🔍 Comparison",
-    "📋 Inspection Report",
-    "⚙️ Review Workflow",
+    "🔍 Version Compare",
+    "🚨 SAE Review",
+    "📑 Audit Trail",
 ])
 
 # ── Tab-jump JS helper ────────────────────────────────────────────────────────
@@ -318,9 +319,9 @@ if _active_tab_idx > 0:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# HOME TAB
+# COMMAND DASHBOARD TAB (replaces Home)
 # ═══════════════════════════════════════════════════════════════════════════════
-with t_home:
+with t_cmd_dash:
     st.markdown("""
 <div style="background:linear-gradient(135deg,#001f5b 0%,#003087 55%,#0052cc 100%);border-radius:16px;padding:28px 36px;margin-bottom:20px;box-shadow:0 4px 24px rgba(0,48,135,0.18);">
   <p style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.6);margin:0 0 6px;">CDSCO-IndiaAI Health Innovation Acceleration Hackathon · Stage 1</p>
@@ -332,7 +333,6 @@ with t_home:
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ DPDP Act 2023</span>
     <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ NDCT Rules 2019</span>
-    <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ Schedule Y</span>
     <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ ICMR GCP Guidelines</span>
     <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ MeitY AI Ethics</span>
   </div>
@@ -355,24 +355,24 @@ with t_home:
 """, unsafe_allow_html=True)
 
     _features = [
-        ("01", "🔒", "Anonymisation",     "#003087",
+        ("01", "🔒", "Protected View",    "#003087",
          "PII/PHI detection and removal from regulatory documents",
-         "Two-step DPDP Act 2023 process: pseudonymisation + irreversible generalisation. Detects patient names, IDs, dates, phone numbers, Aadhaar, hospital records. Full compliance audit log.", 1),
+         "Two-step DPDP Act 2023 process: pseudonymisation + irreversible generalisation. Detects patient names, IDs, dates, phone numbers, Aadhaar, hospital records. Full compliance audit log.", 2),
         ("02", "📄", "Summarisation",     "#0f766e",
          "Structured summaries for 3 document types",
-         "SAE case narrations → priority/causality/outcome. SUGAM checklists → completeness score. Meeting transcripts → decisions, actions, next steps. Optional Claude AI enhancement.", 2),
-        ("03", "✅", "Completeness",      "#6d28d9",
-         "Schedule Y / Form CT mandatory field assessment",
-         "Checks 20 mandatory fields against CDSCO Schedule Y requirements. RAG status per field. Approve / Return / Reject recommendation with critical gap flagging.", 3),
+         "SAE case narrations → priority/causality/outcome. SUGAM checklists → completeness score. Meeting transcripts → decisions, actions, next steps. Optional Claude AI enhancement.", 3),
+        ("03", "✅", "Completeness Check", "#6d28d9",
+         "NDCT Rules 2019 / Form CT mandatory field assessment",
+         "Checks 20 mandatory fields against CDSCO NDCT Rules 2019 requirements. RAG status per field. Approve / Return / Reject recommendation with critical gap flagging.", 4),
         ("04", "🏷️", "Classification",   "#b45309",
          "SAE severity grading + duplicate detection",
-         "Classifies SAEs as DEATH / DISABILITY / HOSPITALISATION / OTHERS per Schedule Y. ICD-10 mapping, reporting timeline, priority queue. Session-based duplicate cross-detection.", 4),
-        ("05", "🔍", "Comparison",        "#0369a1",
+         "Classifies SAEs as DEATH / DISABILITY / HOSPITALISATION / OTHERS per NDCT Rules 2019. ICD-10 mapping, reporting timeline, priority queue. Session-based duplicate cross-detection.", 5),
+        ("05", "🔍", "Version Compare",   "#0369a1",
          "Semantic document diff with substantive change flagging",
-         "Identifies added, removed, and changed content between two document versions. Classifies each change as substantive or administrative. Colour-coded table, downloadable PDF.", 5),
+         "Identifies added, removed, and changed content between two document versions. Classifies each change as substantive or administrative. Colour-coded table, downloadable PDF.", 6),
         ("06", "📋", "Inspection Report", "#be185d",
          "CDSCO GCP site inspection report generator",
-         "Converts raw handwritten or typed site observations into formal CDSCO-format reports. Critical / Major / Minor grading per NDCT Rules 2019. CAPA timelines and regulatory references.", 6),
+         "Converts raw handwritten or typed site observations into formal CDSCO-format reports. Critical / Major / Minor grading per NDCT Rules 2019. CAPA timelines and regulatory references.", 9),
     ]
 
     col_a, col_b, col_c = st.columns(3, gap="medium")
@@ -561,7 +561,7 @@ with t_sum:
                 cc = "err" if r["priority"]=="URGENT" else "warn" if r["priority"]=="STANDARD" else "ok"
                 risk_map = {"URGENT":"Critical","STANDARD":"Medium","LOW":"Low"}
                 action_map = {
-                    "URGENT": f"Immediate escalation to DCGI required. {r['timeline']} report applicable under Schedule Y.",
+                    "URGENT": f"Immediate escalation to DCGI required. {r['timeline']} report applicable under NDCT Rules 2019.",
                     "STANDARD": "Route to standard SAE review queue. Expedited 15-day report required.",
                     "LOW": "Log as periodic SAE. Standard 90-day reporting timeline applies.",
                 }
@@ -617,7 +617,7 @@ with t_comp:
     st.markdown("""
 <div class="sec-hd">
   <div class="sec-ic ic-purple">✅</div>
-  <div><h2>Completeness Assessment — Schedule Y / Form CT</h2>
+  <div><h2>Completeness Assessment — NDCT Rules 2019 / Form CT</h2>
   <p>Checks 20 mandatory fields · RAG status per field · Approve / Return / Reject recommendation · Critical gap flagging</p></div>
 </div>
 """, unsafe_allow_html=True)
@@ -680,6 +680,25 @@ with t_comp:
                             "AI output generated", "Generated",
                             app_id or "unknown", r["recommendation"])
 
+    st.markdown("---")
+    st.markdown("**Reviewer Actions**")
+    cc1, cc2, cc3, cc4 = st.columns(4)
+    with cc1:
+        if st.button("Confirm Reviewer Action", use_container_width=True, key="comp_confirm"):
+            confirm_reviewer_action("Completeness Check", "Reviewer confirmed completeness assessment", "Completeness accepted.", app_id or "unknown", confidence=0.91)
+            st.success("Confirmed.")
+    with cc2:
+        if st.button("Escalate Low-Confidence", use_container_width=True, key="comp_escalate"):
+            confirm_reviewer_action("Completeness Check", "Escalated", "Escalated due to critical missing fields.", app_id or "unknown", confidence=0.91, final_status="Escalated")
+            st.warning("Escalated.")
+    with cc3:
+        if st.button("Create Review Packet", use_container_width=True, key="comp_packet"):
+            pkt_comp = generate_audit_packet()
+            st.success("Review packet generated.")
+    with cc4:
+        if st.button("Open Audit Trail", use_container_width=True, key="comp_audit"):
+            go_to("Audit Trail")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — CLASSIFICATION
@@ -739,7 +758,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
             r = classify_sae(content)
             risk_map = {"DEATH":"Critical","DISABILITY":"High","HOSPITALISATION":"Medium","OTHERS":"Low"}
             action_map = {
-                "DEATH":          "Expedited 7-day report mandatory. Immediate notification to DCGI and Ethics Committee required under Schedule Y.",
+                "DEATH":          "Expedited 7-day report mandatory. Immediate notification to DCGI and Ethics Committee required under NDCT Rules 2019.",
                 "DISABILITY":     "Expedited 15-day report required. Notify sponsor and Ethics Committee. Assess causality.",
                 "HOSPITALISATION":"Expedited 15-day report required. Monitor patient outcome and submit follow-up report.",
                 "OTHERS":         "Periodic reporting within 90 days. Document in safety database.",
@@ -847,10 +866,12 @@ with t_cmp:
                             "AI output generated", "Generated", "Document comparison", action)
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# TAB 6 — INSPECTION REPORT
+# INSPECTION REPORT — removed from ribbon per spec; logic preserved for audit
 # ═══════════════════════════════════════════════════════════════════════════════
-with t_insp:
+# (Content retained below for reference; no longer rendered in a tab)
+if False:  # Inspection Report tab removed from ribbon
     st.markdown("""
 <div class="sec-hd">
   <div class="sec-ic ic-pink">📋</div>
@@ -908,10 +929,9 @@ with t_insp:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# TAB 7 — REVIEW WORKFLOW (formerly separate screens, now in a tab)
+# REVIEW WORKFLOW — routing logic; functions defined here, called from ribbon tabs
 # ═══════════════════════════════════════════════════════════════════════════════
-with t_workflow:
-    render_banner("CDSCO Review Workflow", "Full reviewer pipeline: intake → protected view → SAE review → version compare → audit trail. Uses pre-loaded sample packets.")
+if True:  # scope block — functions promoted to module level via exec pattern
 
     def command_dashboard() -> None:
         case["current_stage"] = "Command Dashboard"
@@ -1110,7 +1130,33 @@ with t_workflow:
                                file_name=f"{case['case_id']}_audit_log.csv", mime="text/csv", use_container_width=True)
         st.info(APP_DISCLAIMER)
 
-    # Route to the selected workflow screen
+    # ── Global action button group — pinned bottom of each reviewer screen ─────
+    def _global_action_buttons(module_label: str, doc_name: str, confidence: float = 0.92) -> None:
+        """Consistent 4-button action group rendered at the bottom of each reviewer screen."""
+        st.markdown("---")
+        st.markdown("**Reviewer Actions**")
+        ga1, ga2, ga3, ga4 = st.columns(4)
+        with ga1:
+            if st.button("Confirm Reviewer Action", use_container_width=True, key=f"gab_confirm_{module_label}"):
+                confirm_reviewer_action(module_label, f"Reviewer confirmed {module_label}", "Action confirmed.", doc_name, confidence=confidence)
+                st.success("Confirmed.")
+        with ga2:
+            if st.button("Escalate Low-Confidence", use_container_width=True, key=f"gab_escalate_{module_label}"):
+                confirm_reviewer_action(module_label, "Escalated", "Escalated due to low confidence.", doc_name, confidence=confidence, final_status="Escalated")
+                st.warning("Escalated.")
+        with ga3:
+            if st.button("Create Review Packet", use_container_width=True, key=f"gab_packet_{module_label}"):
+                if module_label == "SAE Review":
+                    pkt = create_sae_packet(); st.success("SAE packet created.")
+                elif module_label == "Version Compare":
+                    pkt = create_compare_packet(); st.success("Comparison packet created.")
+                else:
+                    pkt = generate_audit_packet(); st.success("Review packet generated.")
+        with ga4:
+            if st.button("Open Audit Trail", use_container_width=True, key=f"gab_audit_{module_label}"):
+                go_to("Audit Trail")
+
+    # Route map — defined at module level (if True: doesn't create a new scope)
     WORKFLOW_ROUTES = {
         "Command Dashboard": command_dashboard,
         "Document Intake":   document_intake,
@@ -1119,7 +1165,118 @@ with t_workflow:
         "Version Compare":   version_compare_screen,
         "Audit Trail":       audit_trail_screen,
     }
+
+# Render the selected workflow screen inside the Command Dashboard ribbon tab
+with t_cmd_dash:
+    render_banner("CDSCO Review Workflow", "Full reviewer pipeline: intake → protected view → SAE review → version compare → audit trail.")
     WORKFLOW_ROUTES[screen]()
+    if screen in ("Protected View", "SAE Review", "Version Compare"):
+        _doc_ref = case["documents"].get(case.get("selected_document_id", ""), {}).get("name", case["packet_id"])
+        _global_action_buttons(screen, _doc_ref)
+
+# ── New ribbon tabs: Document Intake, SAE Review, Audit Trail ─────────────
+
+with t_doc_intake:
+    render_banner("Document Intake", "Select and classify the incoming case packet document before routing to review.")
+    case2 = get_active_case()
+    doc_ids2  = list(case2["documents"].keys())
+    selected2 = st.selectbox("Case packet document", options=doc_ids2,
+                             index=doc_ids2.index(case2["selected_document_id"]),
+                             format_func=lambda d: case2["documents"][d]["name"],
+                             key="di_tab_selectbox")
+    if selected2 != case2["selected_document_id"]:
+        case2["selected_document_id"] = selected2; save_active_case(case2)
+    sel_doc2 = case2["documents"][case2["selected_document_id"]]
+    st.markdown("### Intake controls")
+    dti1, dti2, dti3, dti4 = st.columns(4)
+    with dti1:
+        if st.button("Run classification", use_container_width=True, key="di_tab_cls"): run_classification(); st.success("Classification recorded.")
+    with dti2:
+        if st.button("Confirm reviewer action", use_container_width=True, key="di_tab_confirm"):
+            confirm_reviewer_action("Document Intake","Reviewer confirmed intake assessment","Classification accepted.",sel_doc2["name"],confidence=sel_doc2["confidence"]); st.success("Confirmation recorded.")
+    with dti3:
+        if st.button("Escalate low-confidence", use_container_width=True, key="di_tab_esc"):
+            confirm_reviewer_action("Document Intake","Escalated",sel_doc2.get("classification",{}).get("escalation_recommendation","Escalation requested."),sel_doc2["name"],confidence=sel_doc2["confidence"],final_status="Escalated"); st.warning("Escalation recorded.")
+    with dti4:
+        if st.button("→ Protected View", use_container_width=True, key="di_tab_pv"): go_to("Protected View")
+    dt1b, dt2b, dt3b = st.tabs(["Classification","Synopsis","Source"])
+    with dt1b:
+        clf2 = case2["document_classification"] or sel_doc2.get("classification",{})
+        with st.container(border=True):
+            st.write(f"**Probable type:** {clf2.get('probable_type','Pending')}"); st.write(f"**Severity:** {clf2.get('severity',sel_doc2['risk_level'])}")
+            st.write(f"**Duplicate warning:** {clf2.get('duplicate_warning','Pending')}"); st.write(f"**Escalation:** {clf2.get('escalation_recommendation','Pending')}"); st.write(f"**Confidence:** {int(sel_doc2['confidence']*100)}%")
+    with dt2b:
+        syn2 = case2["structured_synopsis"] or sel_doc2.get("synopsis",{})
+        with st.container(border=True):
+            st.write(f"**Headline:** {syn2.get('headline','Pending')}"); st.write(syn2.get("summary","Run classification to generate synopsis."))
+            for sig2 in syn2.get("key_signals",[]): st.write(f"- {sig2}")
+            if syn2.get("reviewer_prompt"): st.info(syn2["reviewer_prompt"])
+    with dt3b:
+        with st.container(border=True): st.write(sel_doc2["raw_text"])
+
+with t_sae_review:
+    render_banner("SAE Review", "Review SAE classification output, resolve missing information, and confirm or escalate.")
+    case3 = get_active_case()
+    sae3 = case3["sae_review"]
+    with st.container(border=True):
+        sr1,sr2,sr3 = st.columns(3)
+        with sr1: st.write(f"**Patient:** {sae3['patient_profile']}"); st.write(f"**Event:** {sae3['event']}")
+        with sr2: st.write(f"**Seriousness:** {sae3['seriousness']}"); st.write(f"**Causality:** {sae3['causality']}")
+        with sr3: st.write(f"**Action:** {sae3['action_taken']}"); st.write(f"**Outcome:** {sae3['outcome']}")
+    st.markdown("**Missing information**")
+    for item3 in sae3["missing_info"]:
+        item3["resolved"] = st.checkbox(item3["item"], value=item3["resolved"], key=f"srt_mi_{item3['item']}")
+    sae3["reviewer_notes"] = st.text_area("Reviewer notes", value=sae3["reviewer_notes"], height=80, key="srt_notes")
+    save_active_case(case3)
+    st.markdown("---"); st.markdown("**Reviewer Actions**")
+    srt1,srt2,srt3,srt4 = st.columns(4)
+    with srt1:
+        if st.button("Confirm Reviewer Action", use_container_width=True, key="srt_confirm"):
+            confirm_reviewer_action("SAE Review","Reviewer confirmed SAE output","SAE output accepted.",case3["documents"]["sae"]["name"],confidence=0.94); st.success("Confirmed.")
+    with srt2:
+        if st.button("Escalate Low-Confidence", use_container_width=True, key="srt_esc"):
+            confirm_reviewer_action("SAE Review","Escalated","Escalated due to source gaps.",case3["documents"]["sae"]["name"],confidence=0.9,final_status="Escalated"); st.warning("Escalated.")
+    with srt3:
+        if st.button("Create Review Packet", use_container_width=True, key="srt_pkt"):
+            pkt3 = create_sae_packet(); st.success("SAE packet created."); st.text_area("Generated packet", value=pkt3, height=200, key="srt_pkt_out")
+    with srt4:
+        if st.button("Open Audit Trail", use_container_width=True, key="srt_audit"): go_to("Audit Trail")
+
+with t_audit_trail:
+    render_banner("Audit Trail", "Full audit log of all AI outputs and reviewer decisions for the active case packet.")
+    case4 = get_active_case()
+    df4 = audit_dataframe(case4)
+    search4 = st.text_input("Search audit events", key="at_tab_search")
+    if search4:
+        low4 = search4.lower()
+        df4  = df4[df4.astype(str).apply(lambda col: col.str.lower().str.contains(low4, na=False)).any(axis=1)]
+    st.dataframe(df4, use_container_width=True, hide_index=True)
+    for evt4 in case4["audit_events"][-5:][::-1]:
+        with st.expander(f"{evt4['timestamp']} | {evt4['module']} | {evt4['reviewer_action']}"):
+            st.write(f"**Action:** {evt4['action']}"); st.write(f"**Confidence:** {evt4['confidence']}")
+            st.write(f"**Status:** {evt4['final_status']}"); st.write(f"**Source:** {evt4['source_reference']}"); st.write(f"**Detail:** {evt4['note']}")
+    with st.container(border=True):
+        st.write(f"**Protected view:** {case4['protected_view']['escalation_status']}")
+        st.write(f"**SAE packet ready:** {'Yes' if case4['sae_review']['review_packet'] else 'No'}")
+        st.write(f"**Compare packet ready:** {'Yes' if case4['compare_review']['review_packet'] else 'No'}")
+        st.write(f"**Reviewer confirmations:** {len(case4['reviewer_decisions'])}")
+    st.markdown("---"); st.markdown("**Reviewer Actions**")
+    att1,att2,att3,att4 = st.columns(4)
+    with att1:
+        if st.button("Confirm Reviewer Action", use_container_width=True, key="att_confirm"):
+            confirm_reviewer_action("Audit Trail","Reviewer confirmed audit record","Audit record accepted.",case4["packet_id"]); st.success("Confirmed.")
+    with att2:
+        if st.button("Escalate Low-Confidence", use_container_width=True, key="att_esc"):
+            confirm_reviewer_action("Audit Trail","Escalated","Escalated from audit review.",case4["packet_id"],final_status="Escalated"); st.warning("Escalated.")
+    with att3:
+        if st.button("Create Review Packet", use_container_width=True, key="att_pkt"):
+            pkt4 = generate_audit_packet(); st.success("Audit packet generated.")
+            st.download_button("⬇ Audit Packet (JSON)", to_json_bytes(pkt4),
+                               file_name=f"{case4['case_id']}_audit_packet.json", mime="application/json", use_container_width=True)
+    with att4:
+        st.download_button("⬇ Audit Log (CSV)", to_csv_bytes(case4["audit_events"]),
+                           file_name=f"{case4['case_id']}_audit_log.csv", mime="text/csv", use_container_width=True)
+    st.info(APP_DISCLAIMER)
 
 
 # ── Compliance ribbon ─────────────────────────────────────────────────────────
