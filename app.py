@@ -103,26 +103,25 @@ VALID_PASS = "nirnay2026"
 if not st.session_state["logged_in"]:
     st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{font-family:'Inter',system-ui,sans-serif!important;}
 section[data-testid="stSidebar"]{display:none!important;}
 header{display:none!important;}
 footer{display:none!important;}
-.stApp{background:#060f1e!important;}
+.stApp{background:#050d1a!important;}
 .block-container{padding:0!important;max-width:100%!important;}
 [data-testid="column"]{padding:0!important;}
-/* Left column dark background */
-[data-testid="column"]:first-child{background:#071428!important;padding:48px 44px!important;border-right:1px solid #132140!important;}
-/* Right column darker background */
-[data-testid="column"]:last-child{background:#0d1f3c!important;padding:48px 44px!important;}
-/* Input dark styling */
-[data-testid="stTextInput"] input{background:rgba(255,255,255,0.06)!important;border:0.5px solid rgba(255,255,255,0.15)!important;border-radius:8px!important;color:white!important;font-size:13px!important;}
-[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;box-shadow:none!important;}
-[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.25)!important;}
-[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.4)!important;font-size:10px!important;font-weight:700!important;letter-spacing:.08em!important;text-transform:uppercase!important;}
-/* Form submit button */
-[data-testid="stFormSubmitButton"] button{background:#FF9933!important;border:none!important;border-radius:8px!important;color:white!important;font-size:13px!important;font-weight:700!important;width:100%!important;padding:13px!important;}
-[data-testid="stFormSubmitButton"] button:hover{background:#e8871f!important;}
-/* Kill default form border */
-[data-testid="stForm"]{border:none!important;padding:0!important;}
+[data-testid="column"]:first-child{background:linear-gradient(160deg,#060f1e 0%,#081828 100%)!important;padding:56px 52px!important;border-right:1px solid rgba(255,255,255,0.04)!important;min-height:100vh!important;}
+[data-testid="column"]:last-child{background:linear-gradient(160deg,#0c1d38 0%,#0e2244 100%)!important;padding:56px 52px!important;min-height:100vh!important;}
+/* Input styling */
+[data-testid="stTextInput"] input{background:#071224!important;border:1.5px solid rgba(255,255,255,0.16)!important;border-radius:10px!important;color:#f1f5f9!important;font-size:14px!important;caret-color:#FF9933!important;padding:11px 14px!important;transition:all 0.2s!important;}
+[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;box-shadow:0 0 0 3px rgba(255,153,51,0.12)!important;background:#081428!important;}
+[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.28)!important;}
+[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.7)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.1em!important;text-transform:uppercase!important;margin-bottom:5px!important;}
+/* Submit button */
+[data-testid="stFormSubmitButton"] button{background:linear-gradient(135deg,#FF9933,#e8821a)!important;border:none!important;border-radius:10px!important;color:white!important;font-size:14px!important;font-weight:700!important;width:100%!important;padding:13px!important;box-shadow:0 4px 18px rgba(255,153,51,0.3)!important;letter-spacing:0.02em!important;transition:all 0.2s!important;}
+[data-testid="stFormSubmitButton"] button:hover{background:linear-gradient(135deg,#ffab45,#FF9933)!important;box-shadow:0 6px 24px rgba(255,153,51,0.42)!important;transform:translateY(-1px)!important;}
+[data-testid="stForm"]{border:none!important;padding:0!important;background:transparent!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -163,14 +162,20 @@ footer{display:none!important;}
     with _rcol:
         # IndiaAI + CDSCO badge — single line
         st.markdown("""
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:32px;flex-wrap:nowrap;">
-  <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.45);text-align:center;line-height:1.3;flex-shrink:0;">India<br>AI</div>
-  <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
-  <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.45);text-align:center;line-height:1.3;flex-shrink:0;">CD<br>SCO</div>
-  <span style="font-size:10px;color:rgba(255,255,255,0.25);white-space:nowrap;">Hackathon 2026 · Stage 1</span>
+<div style="font-family:'Inter',sans-serif;">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:36px;flex-wrap:nowrap;">
+    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;font-size:9px;font-weight:800;color:rgba(255,255,255,0.6);letter-spacing:.06em;text-align:center;line-height:1.4;flex-shrink:0;">India<br>AI</div>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;font-size:9px;font-weight:800;color:rgba(255,255,255,0.6);letter-spacing:.06em;text-align:center;line-height:1.4;flex-shrink:0;">CD<br>SCO</div>
+    <div style="flex:1;">
+      <div style="font-size:10px;font-weight:700;color:rgba(255,153,51,0.9);letter-spacing:.04em;">Health Innovation Acceleration</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);">Hackathon 2026 · Stage 1</div>
+    </div>
+  </div>
+  <div style="width:32px;height:3px;background:linear-gradient(90deg,#FF9933,rgba(255,153,51,0.2));border-radius:2px;margin-bottom:16px;"></div>
+  <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Authorised access only</div>
+  <div style="font-size:26px;font-weight:800;color:white;margin-bottom:28px;letter-spacing:-0.5px;">Welcome back</div>
 </div>
-<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">Authorised access only</div>
-<div style="font-size:22px;font-weight:700;color:white;margin-bottom:22px;">Sign in</div>
 """, unsafe_allow_html=True)
 
         with st.form("login_form", clear_on_submit=False):
@@ -183,8 +188,11 @@ footer{display:none!important;}
             _submitted = st.form_submit_button("Sign in →", use_container_width=True)
 
         st.markdown("""
-<div style="font-size:10px;color:rgba(255,255,255,0.2);text-align:center;margin-top:18px;line-height:1.7;">
-  Authorised CDSCO personnel only.<br>All sessions are logged for compliance.
+<div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+  <div style="font-size:10px;color:rgba(255,255,255,0.22);line-height:1.8;text-align:center;">
+    Authorised CDSCO personnel only · All sessions are logged for compliance<br>
+    <span style="color:rgba(255,153,51,0.45);font-weight:600;">Nirnay © 2026 · IndiaAI / CDSCO Hackathon</span>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -213,17 +221,26 @@ def go_to(screen_name: str) -> None:
 # TOP BAR
 # ═══════════════════════════════════════════════════════════════════════════════
 st.markdown("""
-<div style="display:flex;align-items:center;gap:14px;padding:8px 0 4px;border-bottom:0.5px solid #e2e8f0;margin-bottom:0;">
-  <div style="font-size:21px;font-weight:900;color:#0a2240;letter-spacing:-0.6px;">Nirnay</div>
-  <div style="font-size:12px;color:#475569;font-weight:500;">Regulatory review, <span style="color:#FF9933;">reimagined for India.</span></div>
+<div style="background:white;border-radius:14px;padding:14px 22px;margin-bottom:12px;box-shadow:0 2px 12px rgba(10,34,64,0.08);border:1px solid rgba(10,34,64,0.07);display:flex;align-items:center;gap:14px;">
+  <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0a2240,#003087);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(10,34,64,0.3);">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
+  </div>
+  <span style="font-size:20px;font-weight:800;color:#0a2240;letter-spacing:-0.5px;">Nirnay</span>
+  <span style="font-size:12px;color:#94a3b8;border-left:1.5px solid #e8edf4;padding-left:14px;margin-left:2px;font-weight:400;">CDSCO AI Review Platform</span>
+  <span style="font-size:10px;font-weight:700;color:#FF9933;background:rgba(255,153,51,0.08);border:1px solid rgba(255,153,51,0.25);border-radius:20px;padding:3px 11px;margin-left:4px;letter-spacing:0.02em;">IndiaAI Hackathon 2026</span>
 </div>
 """, unsafe_allow_html=True)
 
 # Sidebar hint strip
 st.markdown("""
-<div style="background:#FF9933;padding:10px 20px;display:flex;align-items:center;gap:10px;margin-bottom:10px;border-radius:8px;">
-  <span style="font-size:18px;font-weight:900;color:white;">&#8250;</span>
-  <span style="font-size:13px;font-weight:700;color:white;">Click the <b style="background:rgba(0,0,0,0.15);padding:1px 6px;border-radius:4px;">&nbsp;&gt;&nbsp;</b> arrow at the top-left corner of your screen to open the sidebar — sample case packets &amp; review workflow are there</span>
+<div style="background:linear-gradient(135deg,#0a2240,#003087);padding:11px 20px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border-radius:11px;box-shadow:0 3px 12px rgba(10,34,64,0.2);">
+  <div style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);">
+    <span style="font-size:14px;color:white;font-weight:700;">›</span>
+  </div>
+  <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.9);flex:1;">Open the <b style="color:white;font-weight:700;">sidebar</b> (top-left <b style="background:rgba(255,255,255,0.15);padding:1px 8px;border-radius:4px;font-size:12px;">▸</b>) to switch sample case packets and walk the full CDSCO reviewer workflow</span>
+  <div style="flex-shrink:0;display:flex;gap:6px;">
+    <span style="font-size:10px;color:rgba(255,255,255,0.4);font-weight:500;white-space:nowrap;">6 AI features · Live processing</span>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 

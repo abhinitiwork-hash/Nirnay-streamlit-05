@@ -42,67 +42,115 @@ def configure_page() -> None:
 def apply_styles() -> None:
     st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-html,body,[class*="css"]{font-family:'Inter',sans-serif;}
-#MainMenu,footer,header{visibility:hidden;}
-.stApp{background-color:#f0f3f8;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+html,body,[class*="css"]{font-family:'Inter',system-ui,-apple-system,sans-serif;}
+#MainMenu,footer{visibility:hidden;}
+header{visibility:hidden;}
+/* Always keep the sidebar collapse/expand toggle visible */
+[data-testid="collapsedControl"]{visibility:visible!important;display:flex!important;}
 
-section[data-testid="stSidebar"]{background:linear-gradient(180deg,#001f5b 0%,#003087 60%,#004db3 100%);}
+/* ── App background ── */
+.stApp{background:linear-gradient(155deg,#edf1f7 0%,#f4f7fb 55%,#eaeff7 100%)!important;}
+
+/* ── Sidebar ── */
+section[data-testid="stSidebar"]{background:linear-gradient(180deg,#050d1a 0%,#0a1e3d 50%,#0d2a52 100%)!important;border-right:1px solid rgba(255,255,255,0.04)!important;}
 section[data-testid="stSidebar"] *{color:white!important;}
-section[data-testid="stSidebar"] .stMarkdown p{color:rgba(255,255,255,0.8)!important;}
-section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,255,0.1)!important;border:1px solid rgba(255,255,255,0.25)!important;border-radius:8px!important;}
+section[data-testid="stSidebar"] .stMarkdown p{color:rgba(255,255,255,0.78)!important;}
+section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,255,0.09)!important;border:1px solid rgba(255,255,255,0.18)!important;border-radius:9px!important;}
+section[data-testid="stSidebar"] h2,section[data-testid="stSidebar"] h3{color:white!important;font-weight:700!important;}
 
-.hero{background:linear-gradient(135deg,#001f5b 0%,#003087 55%,#0052cc 100%);border-radius:16px;padding:28px 36px;margin-bottom:18px;box-shadow:0 4px 24px rgba(0,48,135,0.18);}
-.hero h1{color:white;font-size:22px;font-weight:700;margin:0;}
-.hero .sub{color:rgba(255,255,255,0.68);font-size:13px;margin:5px 0 0;}
-.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.hbadge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.9);font-weight:500;}
-.hbadge.g{border-color:#4ade80;color:#4ade80;}
+/* ── Hero / Banner ── */
+.hero{background:linear-gradient(135deg,#050d1a 0%,#0a1e3d 40%,#0d3366 100%);border-radius:16px;padding:28px 36px;margin-bottom:18px;box-shadow:0 8px 32px rgba(5,13,26,0.25),inset 0 1px 0 rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.05);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-40%;right:-5%;width:380px;height:380px;background:radial-gradient(circle,rgba(255,153,51,0.07) 0%,transparent 70%);pointer-events:none;}
+.hero h1{color:white;font-size:22px;font-weight:800;margin:0;letter-spacing:-0.3px;}
+.hero .sub{color:rgba(255,255,255,0.62);font-size:13px;margin:5px 0 0;line-height:1.6;}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.hbadge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.82);font-weight:500;}
+.hbadge.g{border-color:rgba(74,222,128,0.5);color:#4ade80;background:rgba(74,222,128,0.08);}
 
-.card{background:rgba(255,255,255,0.96);border:1px solid rgba(11,63,117,0.12);border-radius:16px;padding:1rem 1.1rem;box-shadow:0 10px 24px rgba(11,63,117,0.05);margin-bottom:1rem;}
-.case-chip{display:inline-block;background:rgba(24,166,184,0.12);color:#0b3f75;border:1px solid rgba(24,166,184,0.24);border-radius:999px;padding:0.2rem 0.55rem;font-size:0.78rem;font-weight:600;}
-.small-note{color:#5c6b7a;font-size:0.92rem;}
+/* ── Cards ── */
+.card{background:white;border:1px solid rgba(10,34,64,0.09);border-radius:16px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(10,34,64,0.07),0 1px 4px rgba(10,34,64,0.04);margin-bottom:1rem;}
+.case-chip{display:inline-block;background:rgba(0,82,204,0.08);color:#0052cc;border:1px solid rgba(0,82,204,0.2);border-radius:999px;padding:0.2rem 0.65rem;font-size:0.75rem;font-weight:600;}
+.small-note{color:#5c6b7a;font-size:0.9rem;}
 
-.sec-hd{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #e2e8f0;}
-.sec-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.ic-blue{background:#dbeafe;}.ic-teal{background:#ccfbf1;}.ic-purple{background:#ede9fe;}
-.ic-amber{background:#fef3c7;}.ic-sky{background:#e0f2fe;}.ic-pink{background:#fce7f3;}
-.sec-hd h2{font-size:17px;font-weight:600;color:#1e293b;margin:0;}
-.sec-hd p{font-size:12px;color:#64748b;margin:2px 0 0;}
+/* ── Section headers ── */
+.sec-hd{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:16px;border-bottom:1.5px solid #e8edf4;}
+.sec-ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.ic-blue{background:linear-gradient(135deg,#dbeafe,#bfdbfe);}.ic-teal{background:linear-gradient(135deg,#ccfbf1,#99f6e4);}
+.ic-purple{background:linear-gradient(135deg,#ede9fe,#ddd6fe);}.ic-amber{background:linear-gradient(135deg,#fef3c7,#fde68a);}
+.ic-sky{background:linear-gradient(135deg,#e0f2fe,#bae6fd);}.ic-pink{background:linear-gradient(135deg,#fce7f3,#fbcfe8);}
+.sec-hd h2{font-size:18px;font-weight:700;color:#0f1c2e;margin:0;letter-spacing:-0.2px;}
+.sec-hd p{font-size:12.5px;color:#64748b;margin:3px 0 0;line-height:1.5;}
 
-.upload-card{background:rgba(255,255,255,0.7);border-radius:14px;padding:20px 22px;box-shadow:0 2px 12px rgba(0,0,0,0.06);margin-bottom:14px;border:1px solid rgba(255,255,255,0.6);}
-.upload-card h4{color:#1e293b;font-size:14px;font-weight:600;margin:0 0 10px;}
-.or-line{display:flex;align-items:center;gap:10px;margin:12px 0;color:#94a3b8;font-size:12px;}
+/* ── Upload card ── */
+.upload-card{background:white;border:2px dashed #c8d8eb;border-radius:16px;padding:22px 24px;box-shadow:0 2px 12px rgba(10,34,64,0.04);margin-bottom:14px;transition:border-color 0.2s;}
+.upload-card:hover{border-color:#FF9933;}
+.upload-card h4{color:#0f1c2e;font-size:14px;font-weight:600;margin:0 0 10px;}
+.or-line{display:flex;align-items:center;gap:10px;margin:12px 0;color:#94a3b8;font-size:12px;font-weight:500;}
 .or-line::before,.or-line::after{content:'';flex:1;height:1px;background:#e2e8f0;}
 
+/* ── PII chips ── */
 .pii-chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;}
-.chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 12px;font-size:11.5px;font-weight:600;}
 .cr{background:#fee2e2;color:#991b1b;}.ca{background:#fef3c7;color:#92400e;}
 .cb{background:#dbeafe;color:#1e40af;}.cp{background:#ede9fe;color:#5b21b6;}
 .ct{background:#ccfbf1;color:#065f46;}.cg{background:#f1f5f9;color:#475569;}
 
-.rc{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin:8px 0;border-left:4px solid #003087;}
-.rc.ok{border-left-color:#16a34a;background:#f0fdf4;}
-.rc.warn{border-left-color:#d97706;background:#fffbeb;}
-.rc.err{border-left-color:#dc2626;background:#fef2f2;}
-.rc.info{border-left-color:#0284c7;background:#f0f9ff;}
+/* ── Result / status cards ── */
+.rc{background:white;border-radius:10px;padding:14px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin:8px 0;border-left:4px solid #0052cc;font-size:13px;line-height:1.6;}
+.rc.ok{border-left-color:#16a34a;background:#f0fdf4;color:#14532d;}
+.rc.warn{border-left-color:#d97706;background:#fffbeb;color:#78350f;}
+.rc.err{border-left-color:#dc2626;background:#fef2f2;color:#7f1d1d;}
+.rc.info{border-left-color:#0284c7;background:#f0f9ff;color:#0c4a6e;}
 
-.tw{background:white;border-radius:10px;padding:4px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin:8px 0;}
-.dup-session{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 18px;margin-bottom:12px;font-size:13px;color:#0369a1;}
+/* ── Table wrapper ── */
+.tw{background:white;border-radius:12px;padding:6px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin:8px 0;border:1px solid rgba(10,34,64,0.07);}
+
+/* ── Misc helpers ── */
+.dup-session{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 18px;margin-bottom:12px;font-size:13px;color:#0369a1;line-height:1.6;}
 .audio-note{background:#fef9c3;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;font-size:12px;color:#78350f;margin:8px 0;}
+.entity-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;font-size:13px;min-height:160px;white-space:pre-wrap;line-height:1.6;}
 
-.stTabs [data-baseweb="tab-list"]{background:#0a2240;border-radius:10px;padding:4px;gap:2px;}
-.stTabs [data-baseweb="tab"]{border-radius:7px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.55);padding:8px 14px;}
-.stTabs [aria-selected="true"]{background:#0077b6!important;color:white!important;}
-.stTabs [data-baseweb="tab"]:hover{color:white!important;}
-.stTabs [data-baseweb="tab-border"]{display:none;}
-.stTabs [data-baseweb="tab-panel"]{background:white;border-radius:0 0 12px 12px;padding:20px !important;}
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"]{background:#0a1628!important;border-radius:12px!important;padding:5px!important;gap:2px!important;box-shadow:0 4px 16px rgba(5,13,26,0.3)!important;}
+.stTabs [data-baseweb="tab"]{border-radius:8px!important;font-size:12px!important;font-weight:500!important;color:rgba(255,255,255,0.5)!important;padding:8px 14px!important;transition:all 0.2s!important;}
+.stTabs [data-baseweb="tab"]:hover{color:rgba(255,255,255,0.85)!important;}
+.stTabs [aria-selected="true"]{background:linear-gradient(135deg,#0052cc,#0077cc)!important;color:white!important;box-shadow:0 2px 8px rgba(0,82,204,0.35)!important;}
+.stTabs [data-baseweb="tab-border"]{display:none!important;}
+.stTabs [data-baseweb="tab-panel"]{background:white!important;border-radius:0 0 14px 14px!important;padding:22px!important;box-shadow:0 4px 16px rgba(10,34,64,0.06)!important;border:1px solid rgba(10,34,64,0.07)!important;border-top:none!important;}
 
-.stButton>button[kind="primary"]{background:#0a2240!important;color:white!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:12px!important;padding:8px 16px!important;}
-.stDownloadButton>button{border-radius:8px!important;border:1.5px solid #003087!important;color:#003087!important;font-weight:500!important;font-size:13px!important;}
-.stTextArea textarea{border:1.5px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;background:#fafbfc!important;}
-[data-testid="stMetricValue"]{font-size:24px!important;font-weight:700!important;}
-[data-testid="stMetricLabel"]{font-size:12px!important;color:#64748b!important;}
+/* ── Buttons ── */
+.stButton>button[kind="primary"]{background:linear-gradient(135deg,#0a2240 0%,#003087 100%)!important;color:white!important;border:none!important;border-radius:9px!important;font-weight:600!important;font-size:13px!important;padding:9px 18px!important;box-shadow:0 4px 12px rgba(10,34,64,0.25)!important;transition:all 0.2s!important;letter-spacing:0.01em!important;}
+.stButton>button[kind="primary"]:hover{background:linear-gradient(135deg,#003087 0%,#0052cc 100%)!important;box-shadow:0 6px 18px rgba(10,34,64,0.35)!important;transform:translateY(-1px)!important;}
+.stButton>button:not([kind="primary"]){border-radius:9px!important;font-size:13px!important;font-weight:500!important;transition:all 0.2s!important;}
+.stButton>button:not([kind="primary"]):hover{border-color:#0052cc!important;color:#0052cc!important;}
+.stDownloadButton>button{border-radius:9px!important;border:1.5px solid #0052cc!important;color:#0052cc!important;font-weight:500!important;font-size:13px!important;transition:all 0.2s!important;}
+.stDownloadButton>button:hover{background:rgba(0,82,204,0.05)!important;box-shadow:0 2px 8px rgba(0,82,204,0.15)!important;}
+
+/* ── Form fields ── */
+.stTextArea textarea{border:1.5px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;background:#fafbfc!important;line-height:1.6!important;transition:border-color 0.2s!important;}
+.stTextArea textarea:focus{border-color:#0052cc!important;box-shadow:0 0 0 2px rgba(0,82,204,0.08)!important;}
+.stTextInput input{border-radius:9px!important;border:1.5px solid #e2e8f0!important;font-size:13px!important;transition:border-color 0.2s!important;}
+.stTextInput input:focus{border-color:#0052cc!important;box-shadow:0 0 0 2px rgba(0,82,204,0.08)!important;}
+
+/* ── Metrics ── */
+[data-testid="stMetricValue"]{font-size:26px!important;font-weight:800!important;color:#0a1628!important;}
+[data-testid="stMetricLabel"]{font-size:12px!important;color:#64748b!important;font-weight:500!important;}
+[data-testid="metric-container"]{background:white!important;border-radius:12px!important;padding:14px 18px!important;box-shadow:0 2px 8px rgba(10,34,64,0.07)!important;border:1px solid rgba(10,34,64,0.07)!important;}
+
+/* ── Expanders ── */
+.streamlit-expanderHeader{font-weight:600!important;font-size:13px!important;color:#0f1c2e!important;}
+[data-testid="stExpander"]{border:1px solid #e2e8f0!important;border-radius:12px!important;box-shadow:0 1px 4px rgba(0,0,0,0.04)!important;}
+
+/* ── Progress bar ── */
+[data-testid="stProgressBar"]>div>div{background:linear-gradient(90deg,#0052cc,#0077b6)!important;border-radius:99px!important;}
+[data-testid="stProgressBar"]>div{border-radius:99px!important;background:#e2e8f0!important;}
+
+/* ── Alerts ── */
+[data-testid="stAlert"]{border-radius:10px!important;font-size:13px!important;}
+
+/* ── Selectbox ── */
+[data-testid="stSelectbox"]>div>div{border-radius:9px!important;font-size:13px!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -319,7 +367,9 @@ def generate_audit_packet() -> dict:
 def render_banner(title: str, subtitle: str) -> None:
     st.markdown(f"""
 <div class="hero">
-  <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;opacity:0.82;">{DEMO_MODE_LABEL}</p>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,153,51,0.9);background:rgba(255,153,51,0.12);border:1px solid rgba(255,153,51,0.25);border-radius:20px;padding:3px 10px;">{DEMO_MODE_LABEL}</span>
+  </div>
   <h1>{title}</h1>
   <p class="sub">{subtitle}</p>
   <div class="hero-badges">
@@ -329,7 +379,7 @@ def render_banner(title: str, subtitle: str) -> None:
     <span class="hbadge g">✓ ICMR GCP</span>
     <span class="hbadge g">✓ MeitY AI Ethics</span>
   </div>
-  <p style="margin-top:0.8rem;font-size:0.85rem;opacity:0.88;">{APP_DISCLAIMER}</p>
+  <p style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.45);line-height:1.5;">{APP_DISCLAIMER}</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -395,24 +445,27 @@ def render_case_header(case: dict) -> None:
 
 
 def ai_recommendation_card(finding: str, risk_level: str, action: str, detail: str = "") -> None:
-    colours = {
-        "Critical": ("background:#fee2e2;border-color:#fca5a5;", "color:#991b1b;background:#fecaca;"),
-        "High":     ("background:#fff7ed;border-color:#fed7aa;", "color:#9a3412;background:#ffedd5;"),
-        "Medium":   ("background:#fefce8;border-color:#fef08a;", "color:#854d0e;background:#fef9c3;"),
-        "Low":      ("background:#f0fdf4;border-color:#bbf7d0;", "color:#166534;background:#dcfce7;"),
+    palette = {
+        "Critical": {"bg":"#fef2f2","border":"#fca5a5","accent":"#dc2626","badge_bg":"#fee2e2","badge_fg":"#991b1b","icon":"🔴"},
+        "High":     {"bg":"#fff7ed","border":"#fed7aa","accent":"#ea580c","badge_bg":"#ffedd5","badge_fg":"#9a3412","icon":"🟠"},
+        "Medium":   {"bg":"#fefce8","border":"#fef08a","accent":"#ca8a04","badge_bg":"#fef9c3","badge_fg":"#854d0e","icon":"🟡"},
+        "Low":      {"bg":"#f0fdf4","border":"#bbf7d0","accent":"#16a34a","badge_bg":"#dcfce7","badge_fg":"#166534","icon":"🟢"},
     }
-    cs, bs = colours.get(risk_level, colours["Medium"])
+    p = palette.get(risk_level, palette["Medium"])
     st.markdown(f"""
-<div style="border-radius:12px;padding:18px 22px;margin:14px 0;border:1px solid;{cs}border-left:5px solid #0a2240;">
+<div style="border-radius:14px;padding:20px 24px;margin:16px 0;background:{p['bg']};border:1px solid {p['border']};border-left:5px solid {p['accent']};box-shadow:0 2px 12px rgba(0,0,0,0.06);">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-    <div style="flex:1;">
-      <div style="font-size:10px;font-weight:700;color:#0a2240;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">AI Recommendation</div>
-      <div style="font-size:15px;font-weight:700;color:#0a2240;margin-bottom:4px;">{finding}</div>
-      <div style="font-size:13px;color:#475569;line-height:1.5;">{action}</div>
-      {f'<div style="font-size:11px;color:#64748b;margin-top:5px;">{detail}</div>' if detail else ""}
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <div style="width:5px;height:5px;border-radius:50%;background:{p['accent']};flex-shrink:0;"></div>
+        <span style="font-size:10px;font-weight:700;color:{p['accent']};letter-spacing:.12em;text-transform:uppercase;">AI Recommendation</span>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:#0f1c2e;margin-bottom:6px;line-height:1.4;">{finding}</div>
+      <div style="font-size:13px;color:#475569;line-height:1.6;">{action}</div>
+      {f'<div style="font-size:11px;color:#64748b;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.07);">{detail}</div>' if detail else ""}
     </div>
-    <div style="text-align:center;flex-shrink:0;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 16px;border-radius:6px;{bs}">{risk_level} Risk</div>
+    <div style="flex-shrink:0;text-align:center;">
+      <div style="background:{p['badge_bg']};color:{p['badge_fg']};border-radius:10px;padding:9px 18px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid {p['border']};white-space:nowrap;">{p['icon']} {risk_level} Risk</div>
     </div>
   </div>
 </div>
@@ -421,15 +474,15 @@ def ai_recommendation_card(finding: str, risk_level: str, action: str, detail: s
 
 def compliance_ribbon() -> None:
     st.markdown("""
-<div style="margin-top:32px;border-top:1px solid #e2e8f0;padding:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-  <span style="font-size:9px;font-weight:600;color:#94a3b8;">✓ DPDP Act 2023</span>
-  <span style="color:#e2e8f0;">·</span>
-  <span style="font-size:9px;font-weight:600;color:#94a3b8;">✓ NDCT Rules 2019</span>
-  <span style="color:#e2e8f0;">·</span>
-  <span style="font-size:9px;font-weight:600;color:#94a3b8;">✓ ICMR Guidelines</span>
-  <span style="color:#e2e8f0;">·</span>
-  <span style="font-size:9px;font-weight:600;color:#94a3b8;">✓ MeitY AI Ethics</span>
-  <span style="margin-left:auto;font-size:9px;color:#cbd5e1;">© 2026 Nirnay — Built for IndiaAI/CDSCO Hackathon</span>
+<div style="margin-top:40px;padding:16px 20px;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(10,34,64,0.05);border:1px solid rgba(10,34,64,0.07);">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;flex:1;align-items:center;">
+    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>DPDP Act 2023</span>
+    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>NDCT Rules 2019</span>
+    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>ICMR GCP Guidelines</span>
+    <span style="font-size:10px;font-weight:700;color:#059669;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:4px;padding:1px 5px;">✓</span>MeitY AI Ethics</span>
+    <span style="font-size:10px;font-weight:700;color:#0052cc;display:inline-flex;align-items:center;gap:4px;"><span style="background:rgba(0,82,204,0.08);border:1px solid rgba(0,82,204,0.2);border-radius:4px;padding:1px 5px;">✓</span>Schedule Y</span>
+  </div>
+  <span style="font-size:10px;color:#94a3b8;font-weight:500;white-space:nowrap;">© 2026 Nirnay · IndiaAI / CDSCO Hackathon</span>
 </div>
 """, unsafe_allow_html=True)
 
