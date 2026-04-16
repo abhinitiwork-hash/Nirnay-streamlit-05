@@ -98,145 +98,153 @@ VALID_USER = "admin"
 VALID_PASS = "nirnay2026"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LOGIN PAGE — Option A: full HTML via st.components.v1.html()
-# Query param ?auth=1 is set by JS after correct credentials, Streamlit reads it
+# LOGIN PAGE — native Streamlit inputs, full CSS dark styling
 # ═══════════════════════════════════════════════════════════════════════════════
-_qp = st.query_params
-if _qp.get("auth") == "1" and not st.session_state["logged_in"]:
-    st.session_state["logged_in"] = True
-    st.query_params.clear()
-    st.rerun()
-
 if not st.session_state["logged_in"]:
     st.markdown("""
 <style>
 section[data-testid="stSidebar"]{display:none!important;}
-.stApp{background:#060f1e!important;}
-.block-container{padding:0!important;max-width:100%!important;}
 header{display:none!important;}
 footer{display:none!important;}
+.stApp{background:#060f1e!important;}
+.block-container{padding:0!important;max-width:100%!important;}
+
+/* Full-page two-panel layout */
+.login-wrap{display:flex;min-height:100vh;width:100%;font-family:'Inter',system-ui,sans-serif;}
+.login-left{flex:1.3;background:#071428;padding:48px 44px;display:flex;flex-direction:column;border-right:1px solid #132140;}
+.login-right{flex:0.8;background:#0d1f3c;padding:48px;display:flex;flex-direction:column;justify-content:center;}
+.brand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.shield{width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-name{font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;}
+.brand-tag{font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;}
+.orange-line{width:36px;height:2px;background:#FF9933;border-radius:2px;margin:12px 0 18px;}
+.tagline-h{font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;}
+.tagline-h span{color:#FF9933;}
+.tagline-p{font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;max-width:340px;margin-bottom:24px;}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px;flex:1;}
+.feat-card{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:13px 14px;}
+.feat-cat{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}
+.feat-title{font-size:12px;font-weight:700;color:white;margin-bottom:3px;}
+.feat-desc{font-size:10px;color:rgba(255,255,255,0.38);line-height:1.4;}
+.comp-row{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);}
+.comp-badge{font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;}
+.hack-row{display:flex;align-items:center;gap:8px;margin-bottom:28px;}
+.hb{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;line-height:1.2;flex-shrink:0;}
+.hb-sep{width:1px;height:16px;background:rgba(255,255,255,0.1);}
+.hb-txt{font-size:9px;color:rgba(255,255,255,0.2);white-space:nowrap;}
+.signin-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.signin-title{font-size:22px;font-weight:700;color:white;margin-bottom:26px;}
+.field-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.foot-note{font-size:10px;color:rgba(255,255,255,0.18);text-align:center;margin-top:20px;line-height:1.7;}
+
+/* Override Streamlit input styles for dark theme */
+[data-testid="stTextInput"] input{
+  background:rgba(255,255,255,0.05)!important;
+  border:0.5px solid rgba(255,255,255,0.15)!important;
+  border-radius:8px!important;
+  color:white!important;
+  font-size:13px!important;
+  padding:12px 14px!important;
+}
+[data-testid="stTextInput"] input:focus{
+  border-color:rgba(255,153,51,0.6)!important;
+  background:rgba(255,255,255,0.08)!important;
+  box-shadow:none!important;
+}
+[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.22)!important;}
+[data-testid="stTextInput"] label{
+  font-size:9px!important;font-weight:700!important;
+  color:rgba(255,255,255,0.35)!important;
+  letter-spacing:.1em!important;text-transform:uppercase!important;
+}
+[data-testid="stTextInput"] p{
+  font-size:9px!important;font-weight:700!important;
+  color:rgba(255,255,255,0.35)!important;
+  letter-spacing:.1em!important;text-transform:uppercase!important;
+}
+/* Sign in button */
+[data-testid="stButton"] button[kind="primary"]{
+  background:#FF9933!important;
+  border:none!important;
+  border-radius:8px!important;
+  padding:13px!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  color:white!important;
+  letter-spacing:.02em!important;
+  width:100%!important;
+}
+[data-testid="stButton"] button[kind="primary"]:hover{background:#e8871f!important;}
+/* Remove default column gaps */
+[data-testid="column"]{padding:0!important;}
+div[data-testid="stVerticalBlock"]>div{gap:0!important;}
 </style>
 """, unsafe_allow_html=True)
 
-    _failed_msg = "true" if st.session_state["_login_failed"] else "false"
-    _cv1.html(f"""
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-*{{box-sizing:border-box;margin:0;padding:0;}}
-html,body{{height:100%;font-family:'Inter',system-ui,sans-serif;background:#060f1e;}}
-.page{{display:flex;height:100vh;min-height:620px;}}
-.left{{flex:1.3;background:#071428;padding:48px 44px;display:flex;flex-direction:column;border-right:1px solid #132140;}}
-.right{{flex:0.8;background:#0d1f3c;padding:0 48px;display:flex;flex-direction:column;justify-content:center;}}
-.brand{{display:flex;align-items:center;gap:10px;margin-bottom:10px;}}
-.shield{{width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;}}
-.brand-name{{font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;}}
-.brand-tag{{font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;}}
-.divider{{width:36px;height:2px;background:#FF9933;border-radius:2px;margin:12px 0 18px;}}
-.tagline h2{{font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;}}
-.tagline h2 span{{color:#FF9933;}}
-.tagline p{{font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;max-width:340px;margin-bottom:24px;}}
-.grid{{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px;flex:1;}}
-.card{{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:13px 14px;}}
-.cat{{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}}
-.ctitle{{font-size:12px;font-weight:700;color:white;margin-bottom:3px;}}
-.desc{{font-size:10px;color:rgba(255,255,255,0.38);line-height:1.4;}}
-.badges{{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);}}
-.badge{{font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;}}
-.hackbadge{{display:flex;align-items:center;gap:8px;margin-bottom:32px;}}
-.hb{{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;}}
-.hbsep{{width:1px;height:16px;background:rgba(255,255,255,0.1);}}
-.hbtxt{{font-size:9px;color:rgba(255,255,255,0.2);}}
-.label{{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}}
-.field-wrap{{margin-bottom:13px;}}
-input{{width:100%;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px 14px;font-size:13px;color:white;outline:none;font-family:inherit;}}
-input::placeholder{{color:rgba(255,255,255,0.22);}}
-input:focus{{border-color:rgba(255,153,51,0.6);background:rgba(255,255,255,0.08);}}
-.btn{{width:100%;background:#FF9933;border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:700;color:white;cursor:pointer;letter-spacing:.02em;margin-top:8px;font-family:inherit;}}
-.btn:hover{{background:#e8871f;}}
-.err{{color:#f87171;font-size:11px;margin-top:6px;display:none;}}
-.err.show{{display:block;}}
-.footer-note{{font-size:10px;color:rgba(255,255,255,0.18);text-align:center;margin-top:20px;line-height:1.7;}}
-.signin-label{{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}}
-.signin-title{{font-size:22px;font-weight:700;color:white;margin-bottom:26px;}}
-</style>
-</head>
-<body>
-<div class="page">
-
-  <div class="left">
-    <div class="brand">
-      <div class="shield">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
-      </div>
-      <span class="brand-name">Nirnay</span>
-      <span class="brand-tag">AI Review System</span>
+    # ── Left panel HTML ───────────────────────────────────────────────────────
+    st.markdown("""
+<div class="login-wrap">
+<div class="login-left">
+  <div class="brand-row">
+    <div class="shield">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
     </div>
-    <div class="divider"></div>
-    <div class="tagline">
-      <h2>Regulatory review,<br><span>reimagined for India.</span></h2>
-      <p>All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</p>
-    </div>
-    <div class="grid">
-      <div class="card" style="border-top:2px solid #0052cc;"><div class="cat" style="color:#60a5fa;">01 · Privacy</div><div class="ctitle">Anonymisation</div><div class="desc">DPDP Act 2023 · two-step PII removal</div></div>
-      <div class="card" style="border-top:2px solid #0f766e;"><div class="cat" style="color:#34d399;">02 · Intelligence</div><div class="ctitle">Summarisation</div><div class="desc">SAE · checklists · meeting audio</div></div>
-      <div class="card" style="border-top:2px solid #6d28d9;"><div class="cat" style="color:#a78bfa;">03 · Validation</div><div class="ctitle">Completeness</div><div class="desc">20 mandatory fields · RAG flagging</div></div>
-      <div class="card" style="border-top:2px solid #b45309;"><div class="cat" style="color:#fbbf24;">04 · Triage</div><div class="ctitle">Classification</div><div class="desc">SAE severity · duplicate detection</div></div>
-      <div class="card" style="border-top:2px solid #0369a1;"><div class="cat" style="color:#38bdf8;">05 · Diff Engine</div><div class="ctitle">Comparison</div><div class="desc">Semantic + structural dossier diff</div></div>
-      <div class="card" style="border-top:2px solid #be185d;"><div class="cat" style="color:#f472b6;">06 · Generation</div><div class="ctitle">Inspection Report</div><div class="desc">Typed / audio → CDSCO GCP report</div></div>
-    </div>
-    <div class="badges">
-      <span class="badge">✓ DPDP Act 2023</span>
-      <span class="badge">✓ NDCT Rules 2019</span>
-      <span class="badge">✓ ICMR GCP</span>
-      <span class="badge">✓ MeitY AI Ethics</span>
-    </div>
+    <span class="brand-name">Nirnay</span>
+    <span class="brand-tag">AI Review System</span>
   </div>
-
-  <div class="right">
-    <div class="hackbadge">
-      <div class="hb">India<br>AI</div>
-      <div class="hbsep"></div>
-      <div class="hb">CD<br>SCO</div>
-      <span class="hbtxt">Hackathon 2026 · Stage 1</span>
-    </div>
-    <div class="signin-label">Authorised access only</div>
-    <div class="signin-title">Sign in</div>
-    <div class="field-wrap">
-      <div class="label">Username</div>
-      <input type="text" id="uname" placeholder="Username" autocomplete="username"/>
-    </div>
-    <div class="field-wrap">
-      <div class="label">Password</div>
-      <input type="password" id="pwd" placeholder="Password" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <div class="err" id="err">⚠ Invalid credentials. Please try again.</div>
-    <button class="btn" onclick="doLogin()">Sign in →</button>
-    <div class="footer-note">Authorised CDSCO personnel only.<br>All sessions are logged for compliance.</div>
+  <div class="orange-line"></div>
+  <div class="tagline-h">Regulatory review,<br><span>reimagined for India.</span></div>
+  <div class="tagline-p">All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</div>
+  <div class="feat-grid">
+    <div class="feat-card" style="border-top:2px solid #0052cc;"><div class="feat-cat" style="color:#60a5fa;">01 · Privacy</div><div class="feat-title">Anonymisation</div><div class="feat-desc">DPDP Act 2023 · two-step PII removal</div></div>
+    <div class="feat-card" style="border-top:2px solid #0f766e;"><div class="feat-cat" style="color:#34d399;">02 · Intelligence</div><div class="feat-title">Summarisation</div><div class="feat-desc">SAE · checklists · meeting audio</div></div>
+    <div class="feat-card" style="border-top:2px solid #6d28d9;"><div class="feat-cat" style="color:#a78bfa;">03 · Validation</div><div class="feat-title">Completeness</div><div class="feat-desc">20 mandatory fields · RAG flagging</div></div>
+    <div class="feat-card" style="border-top:2px solid #b45309;"><div class="feat-cat" style="color:#fbbf24;">04 · Triage</div><div class="feat-title">Classification</div><div class="feat-desc">SAE severity · duplicate detection</div></div>
+    <div class="feat-card" style="border-top:2px solid #0369a1;"><div class="feat-cat" style="color:#38bdf8;">05 · Diff Engine</div><div class="feat-title">Comparison</div><div class="feat-desc">Semantic + structural dossier diff</div></div>
+    <div class="feat-card" style="border-top:2px solid #be185d;"><div class="feat-cat" style="color:#f472b6;">06 · Generation</div><div class="feat-title">Inspection Report</div><div class="feat-desc">Typed / audio → CDSCO GCP report</div></div>
   </div>
-
+  <div class="comp-row">
+    <span class="comp-badge">✓ DPDP Act 2023</span>
+    <span class="comp-badge">✓ NDCT Rules 2019</span>
+    <span class="comp-badge">✓ ICMR GCP</span>
+    <span class="comp-badge">✓ MeitY AI Ethics</span>
+  </div>
 </div>
-<script>
-var failed = {_failed_msg};
-if(failed) document.getElementById('err').classList.add('show');
-function doLogin(){{
-  var u = document.getElementById('uname').value.trim();
-  var p = document.getElementById('pwd').value;
-  if(u === 'admin' && p === 'nirnay2026'){{
-    window.parent.location.href = window.parent.location.href.split('?')[0] + '?auth=1';
-  }} else {{
-    document.getElementById('err').classList.add('show');
-    document.getElementById('pwd').value = '';
-    document.getElementById('pwd').focus();
-  }}
-}}
-</script>
-</body>
-</html>
-""", height=700, scrolling=False)
+<div class="login-right">
+  <div class="hack-row">
+    <div class="hb">India<br>AI</div>
+    <div class="hb-sep"></div>
+    <div class="hb">CD<br>SCO</div>
+    <span class="hb-txt">Hackathon 2026 · Stage 1</span>
+  </div>
+  <div class="signin-label">Authorised access only</div>
+  <div class="signin-title">Sign in</div>
+""", unsafe_allow_html=True)
+
+    # ── Native Streamlit inputs (guaranteed to work on Streamlit Cloud) ───────
+    _uname = st.text_input("USERNAME", placeholder="Username", key="login_uname")
+    _pwd   = st.text_input("PASSWORD", placeholder="Password", type="password", key="login_pwd")
+
+    if st.session_state["_login_failed"]:
+        st.markdown('<p style="color:#f87171;font-size:11px;margin:4px 0 0;">⚠ Invalid credentials. Please try again.</p>', unsafe_allow_html=True)
+
+    _do_login = st.button("Sign in →", key="login_btn", use_container_width=True, type="primary")
+
+    st.markdown("""
+  <div class="foot-note">Authorised CDSCO personnel only.<br>All sessions are logged for compliance.</div>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+    if _do_login:
+        if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
+            st.session_state["logged_in"]    = True
+            st.session_state["_login_failed"] = False
+            st.rerun()
+        else:
+            st.session_state["_login_failed"] = True
+            st.rerun()
+
     st.stop()
 
 # ── Past login gate ───────────────────────────────────────────────────────────
