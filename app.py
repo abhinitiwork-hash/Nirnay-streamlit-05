@@ -346,6 +346,7 @@ with t_anon:
     st.text_area("Document content", height=200,
                  placeholder="Paste SAE report, clinical trial document, or any regulatory text with PII/PHI...",
                  key="anon_textarea")
+    st.session_state["anon_text"] = st.session_state.get("anon_textarea","")
     st.markdown('</div>', unsafe_allow_html=True)
 
     c1, c2, _ = st.columns([1,1,3])
@@ -356,7 +357,7 @@ with t_anon:
             st.rerun()
 
     if run_anon:
-        content = (st.session_state.get("anon_text") or st.session_state.get("anon_textarea","")).strip()
+        content = st.session_state["anon_text"].strip()
         if not content:
             st.markdown('<div class="rc warn">⚠️ Please upload a file or paste text first.</div>', unsafe_allow_html=True)
         else:
@@ -414,6 +415,101 @@ with t_anon:
                     st.dataframe(pd.DataFrame(result["tokens"]), use_container_width=True, hide_index=True)
                     st.markdown('</div>', unsafe_allow_html=True)
 
+            # ── jsPDF PDF download block (restored from app_AJ) ──────────────
+            _tok_json_str = _json.dumps(result["tokens"])
+            import json as _json2
+            _js_step1 = _json2.dumps(result["step1"])
+            _pdf_component = f"""<!DOCTYPE html><html><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+  body{{font-family:'Inter',system-ui,sans-serif;margin:0;padding:12px;background:#f8fafc;}}
+  .pdf-row{{display:flex;gap:12px;flex-wrap:wrap;}}
+  .pdf-btn{{cursor:pointer;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;display:flex;align-items:center;gap:6px;}}
+  .btn-red{{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}}
+  .btn-red:hover{{background:#fecaca;}}
+  .btn-navy{{background:#003087;color:white;border:1px solid #003087;}}
+  .btn-navy:hover{{background:#002060;}}
+  .label{{font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}}
+</style>
+</head><body>
+<div class="label">PDF downloads (generated in browser)</div>
+<div class="pdf-row">
+  <button class="pdf-btn btn-red" onclick="genStep1PDF()">&#x1F4C4; Deidentified Report (PDF)</button>
+  <button class="pdf-btn btn-red" onclick="genPseudoDocPDF()">&#x1F4C4; Pseudonymised Document (PDF)</button>
+  <button class="pdf-btn btn-navy" onclick="genStep2PDF()">&#x1F4C4; Anonymised Report (PDF)</button>
+</div>
+<script>
+const tokens = {_tok_json_str};
+const fname = "{fname}";
+const base = fname.includes('.') ? fname.split('.').slice(0,-1).join('.') : fname;
+const now = new Date().toLocaleString('en-IN');
+
+function addHeader(doc, title, fname){{
+  doc.setFillColor(0,48,135);
+  doc.rect(0,0,210,18,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text('Nirnay \u2014 CDSCO AI Review System',10,7);
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text(title,10,13);
+  doc.text('Generated: '+now,150,13);
+  doc.setTextColor(0,0,0);
+}}
+
+function genStep1PDF(){{
+  const {{jsPDF}} = window.jspdf;
+  const doc = new jsPDF();
+  addHeader(doc,'Deidentified Report \u2014 '+fname,fname);
+  doc.setFontSize(9);
+  doc.text('Field-by-field comparison of raw data and pseudonymised tokens:',10,25);
+  const rows = tokens.map(t=>[t['Entity Type'],t['Original Value'],t.Token]);
+  doc.autoTable({{
+    head:[['Field','Raw Data','Pseudonymised Token']],
+    body:rows,startY:28,
+    styles:{{fontSize:8,cellPadding:3}},
+    headStyles:{{fillColor:[0,48,135],textColor:255,fontStyle:'bold'}},
+    alternateRowStyles:{{fillColor:[240,244,248]}},
+    margin:{{left:10,right:10}}
+  }});
+  doc.save(base+'_Deidentified_Report.pdf');
+}}
+
+function genPseudoDocPDF(){{
+  const {{jsPDF}} = window.jspdf;
+  const doc = new jsPDF();
+  addHeader(doc,'PSEUDONYMISED \u2014 NOT FOR PUBLIC RELEASE',fname);
+  doc.setFontSize(8);
+  const step1Text = {_js_step1};
+  const lines = doc.splitTextToSize(step1Text,190);
+  let y=28;
+  lines.forEach(l=>{{if(y>270){{doc.addPage();addHeader(doc,'PSEUDONYMISED \u2014 NOT FOR PUBLIC RELEASE',fname);y=28;}}doc.text(l,10,y);y+=4.5;}});
+  doc.setFontSize(7);doc.setTextColor(150,150,150);
+  doc.text('Generated: '+now+' | Nirnay \u2014 CDSCO AI Review System',10,288);
+  doc.save(base+'_Pseudonymised.pdf');
+}}
+
+function genStep2PDF(){{
+  const {{jsPDF}} = window.jspdf;
+  const doc = new jsPDF();
+  addHeader(doc,'Anonymised Report \u2014 '+fname,fname);
+  doc.setFontSize(9);
+  doc.text('Before/after comparison: pseudonymised tokens vs final anonymised output:',10,25);
+  const rows = tokens.map(t=>[t['Entity Type'],t.Token,'[GENERALISED/REDACTED]']);
+  doc.autoTable({{
+    head:[['Field','Pseudonymised (Step 1)','Anonymised Output (Step 2)']],
+    body:rows,startY:28,
+    styles:{{fontSize:8,cellPadding:3}},
+    headStyles:{{fillColor:[15,118,110],textColor:255,fontStyle:'bold'}},
+    alternateRowStyles:{{fillColor:[240,248,246]}},
+    margin:{{left:10,right:10}}
+  }});
+  doc.save(base+'_Anonymised_Report.pdf');
+}}
+</script>
+</body></html>"""
+            _cv1.html(_pdf_component, height=80)
+
             add_audit_event("Anonymisation", f"Anonymised document — {n} PII/PHI entities",
                             0.93, "AI output generated", "Generated", fname,
                             f"Two-step DPDP Act 2023 anonymisation. Entities: {', '.join(result['types'])}")
@@ -458,6 +554,7 @@ with t_sum:
 
     st.markdown('<div class="or-line">or paste text manually</div>', unsafe_allow_html=True)
     st.text_area("Document content", height=200, placeholder="Paste content here...", key="sum_ta")
+    st.session_state["sum_text"] = st.session_state.get("sum_ta","")
     st.markdown('</div>', unsafe_allow_html=True)
 
     c1, c2, _ = st.columns([1,1,3])
@@ -468,7 +565,7 @@ with t_sum:
             st.rerun()
 
     if run_sum:
-        content = (st.session_state.get("sum_text") or st.session_state.get("sum_ta","")).strip()
+        content = st.session_state["sum_text"].strip()
         if not content:
             st.markdown('<div class="rc warn">Please upload or paste content first.</div>', unsafe_allow_html=True)
         else:
@@ -500,6 +597,40 @@ with t_sum:
                 st.download_button("⬇ SAE Summary (TXT)",
                     f"Priority:{r['priority']}\nCausality:{r['causality']}\nOutcome:{r['outcome']}\nTimeline:{r['timeline']}",
                     file_name="sae_summary.txt")
+                # ── jsPDF PDF block (restored from app_AJ) ───────────────────
+                _sae_priority = r['priority']; _sae_causality = r['causality']
+                _sae_outcome = r['outcome']; _sae_setting = r['setting']; _sae_timeline = r['timeline']
+                _sae_rec = "Escalate to DCGI immediately" if _sae_priority == "URGENT" else "Route to standard review queue"
+                _sae_pdf = f"""<!DOCTYPE html><html><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>body{{font-family:system-ui,sans-serif;margin:0;padding:10px;background:#f8fafc;}}
+.pdf-btn{{cursor:pointer;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:#003087;color:white;}}
+.pdf-btn:hover{{background:#002060;}}
+.lbl{{font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}}</style>
+</head><body>
+<div class="lbl">PDF download</div>
+<button class="pdf-btn" onclick="genPDF()">&#x1F4C4; SAE Summary (PDF)</button>
+<script>
+function genPDF(){{
+  const {{jsPDF}}=window.jspdf; const doc=new jsPDF();
+  doc.setFillColor(0,48,135); doc.rect(0,0,210,18,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text('Nirnay \u2014 SAE Case Narration Summary',10,7);
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text('Generated: '+new Date().toLocaleString('en-IN'),10,13);
+  doc.setTextColor(0,0,0); doc.setFontSize(10);
+  const rows=[
+    ['Priority','{_sae_priority}'],['Causality','{_sae_causality}'],['Outcome','{_sae_outcome}'],
+    ['Setting','{_sae_setting}'],['Reporting Timeline','{_sae_timeline}'],
+    ['Recommended Action','{_sae_rec}']
+  ];
+  doc.autoTable({{head:[['Field','Value']],body:rows,startY:22,
+    headStyles:{{fillColor:[0,48,135],textColor:255,fontStyle:'bold'}},
+    alternateRowStyles:{{fillColor:[240,244,248]}},styles:{{fontSize:9,cellPadding:3}},margin:{{left:10,right:10}}}});
+  doc.save('sae_summary.pdf');
+}}
+</script></body></html>"""
+                _cv1.html(_sae_pdf, height=60)
 
             elif doc_type == "Application Checklist (SUGAM)":
                 r = summarise_checklist(content)
@@ -515,6 +646,36 @@ with t_sum:
                 if r["actions"]:
                     with st.expander("Actionable Items", expanded=True):
                         for i,a in enumerate(r["actions"][:10],1): st.markdown(f"{i}. {a}")
+                # ── jsPDF PDF block (restored from app_AJ) ───────────────────
+                _chk_tot = r['total']; _chk_comp = r['complete']
+                _chk_inc = r['incomplete']; _chk_miss = r['missing']
+                _chk_sc = r['score']; _chk_rec = r['recommendation']
+                _sugam_pdf = f"""<!DOCTYPE html><html><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>body{{font-family:system-ui,sans-serif;margin:0;padding:10px;background:#f8fafc;}}
+.pdf-btn{{cursor:pointer;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:#003087;color:white;}}
+.pdf-btn:hover{{background:#002060;}}
+.lbl{{font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}}</style>
+</head><body>
+<div class="lbl">PDF download</div>
+<button class="pdf-btn" onclick="genPDF()">&#x1F4C4; Checklist Summary (PDF)</button>
+<script>
+function genPDF(){{
+  const {{jsPDF}}=window.jspdf; const doc=new jsPDF();
+  doc.setFillColor(0,48,135); doc.rect(0,0,210,18,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text('Nirnay \u2014 Application Checklist Summary (SUGAM)',10,7);
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text('Generated: '+new Date().toLocaleString('en-IN'),10,13);
+  doc.setTextColor(0,0,0);
+  const rows=[['Total Items','{_chk_tot}'],['Complete','{_chk_comp}'],['Incomplete','{_chk_inc}'],['Missing','{_chk_miss}'],['Score','{_chk_sc}%'],['Recommendation','{_chk_rec}']];
+  doc.autoTable({{head:[['Metric','Value']],body:rows,startY:22,
+    headStyles:{{fillColor:[0,48,135],textColor:255,fontStyle:'bold'}},
+    alternateRowStyles:{{fillColor:[240,244,248]}},styles:{{fontSize:9,cellPadding:3}},margin:{{left:10,right:10}}}});
+  doc.save('checklist_summary.pdf');
+}}
+</script></body></html>"""
+                _cv1.html(_sugam_pdf, height=60)
 
             else:  # Meeting
                 r = summarise_meeting(content)
@@ -529,6 +690,37 @@ with t_sum:
                 if r["next_steps"]:
                     with st.expander("📅 Next Steps", expanded=False):
                         for n in r["next_steps"]: st.write(f"• {n}")
+                # ── jsPDF PDF block (restored from app_AJ) ───────────────────
+                import json as _jmtg
+                _dec_rows = [[f"Decision {i+1}", d] for i,d in enumerate(r['decisions'][:10])]
+                _act_rows = [[f"Action {i+1}", a] for i,a in enumerate(r['actions'][:10])]
+                _nxt_rows = [[f"Next Step {i+1}", n] for i,n in enumerate(r['next_steps'][:6])]
+                _all_mtg_rows = _dec_rows + _act_rows + _nxt_rows
+                _mtg_pdf = f"""<!DOCTYPE html><html><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>body{{font-family:system-ui,sans-serif;margin:0;padding:10px;background:#f8fafc;}}
+.pdf-btn{{cursor:pointer;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:#003087;color:white;}}
+.lbl{{font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}}</style>
+</head><body><div class="lbl">PDF download</div>
+<button class="pdf-btn" onclick="genPDF()">&#x1F4C4; Meeting Summary (PDF)</button>
+<script>
+const rows={_jmtg.dumps(_all_mtg_rows)};
+function genPDF(){{
+  const {{jsPDF}}=window.jspdf; const doc=new jsPDF();
+  doc.setFillColor(0,48,135); doc.rect(0,0,210,18,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text('Nirnay \u2014 Meeting Summary',10,7);
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text('Generated: '+new Date().toLocaleString('en-IN'),10,13);
+  doc.setTextColor(0,0,0);
+  doc.autoTable({{head:[['Type','Item']],body:rows,startY:22,
+    headStyles:{{fillColor:[0,48,135],textColor:255,fontStyle:'bold'}},
+    styles:{{fontSize:8,cellPadding:3}},columnStyles:{{0:{{cellWidth:35}}}},margin:{{left:10,right:10}}}});
+  doc.save('meeting_summary.pdf');
+}}
+</script></body></html>"""
+                _cv1.html(_mtg_pdf, height=60)
 
             add_audit_event("Summarisation", f"Document summarised — {doc_type}", 0.90,
                             "AI output generated", "Generated", doc_type, "")
@@ -560,6 +752,7 @@ with t_comp:
         st.markdown('<div class="or-line">or paste text manually</div>', unsafe_allow_html=True)
         st.text_area("Application content", height=180,
                      placeholder="Paste SUGAM application or checklist content...", key="comp_ta")
+        st.session_state["comp_text"] = st.session_state.get("comp_ta","")
         st.markdown('</div>', unsafe_allow_html=True)
     with col_b:
         app_id = st.text_input("Application ID", placeholder="SUGAM-CT-2024-0892")
@@ -567,7 +760,7 @@ with t_comp:
         run_comp = st.button("✅ Check Completeness", type="primary", use_container_width=True)
 
     if run_comp:
-        content = (st.session_state.get("comp_text") or st.session_state.get("comp_ta","")).strip()
+        content = st.session_state["comp_text"].strip()
         if not content:
             st.markdown('<div class="rc warn">Please upload or paste content first.</div>', unsafe_allow_html=True)
         else:
@@ -654,6 +847,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
             st.success(f"✓ Loaded: {cls_file.name}")
     st.markdown('<div class="or-line">or paste text</div>', unsafe_allow_html=True)
     st.text_area("SAE report content", height=160, key="class_ta")
+    st.session_state["class_text"] = st.session_state.get("class_ta","")
     st.markdown('</div>', unsafe_allow_html=True)
 
     with st.expander("+ Add more SAE reports for duplicate detection", expanded=False):
@@ -675,7 +869,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
     with c1: run_cls = st.button("🏷️ Classify & Check Duplicates", type="primary", use_container_width=True)
 
     if run_cls:
-        content = (st.session_state.get("class_text") or st.session_state.get("class_ta","")).strip()
+        content = st.session_state["class_text"].strip()
         if not content:
             st.markdown('<div class="rc warn">Please upload or paste an SAE report first.</div>', unsafe_allow_html=True)
         else:
@@ -739,6 +933,7 @@ with t_cmp:
                 st.session_state["v1_text"] = st.session_state["v1ta"] = t
                 st.success(f"✓ {v1f.name}")
         st.text_area("or paste V1", height=200, key="v1ta", placeholder="Original document...")
+        st.session_state["v1_text"] = st.session_state.get("v1ta","")
     with cv2:
         st.markdown("**Version 2 — Updated**")
         v2f = st.file_uploader("Upload V2", type=["docx","pdf","txt"], key="v2f")
@@ -748,13 +943,14 @@ with t_cmp:
                 st.session_state["v2_text"] = st.session_state["v2ta"] = t
                 st.success(f"✓ {v2f.name}")
         st.text_area("or paste V2", height=200, key="v2ta", placeholder="Updated document...")
+        st.session_state["v2_text"] = st.session_state.get("v2ta","")
 
     c1, _, _ = st.columns([1,1,3])
     with c1: run_cmp = st.button("🔍 Compare Documents", type="primary", use_container_width=True)
 
     if run_cmp:
-        t1c = (st.session_state.get("v1_text") or st.session_state.get("v1ta","")).strip()
-        t2c = (st.session_state.get("v2_text") or st.session_state.get("v2ta","")).strip()
+        t1c = st.session_state["v1_text"].strip()
+        t2c = st.session_state["v2_text"].strip()
         if not t1c or not t2c:
             st.markdown('<div class="rc warn">Please provide both document versions.</div>', unsafe_allow_html=True)
         else:
@@ -843,6 +1039,59 @@ if False:  # Inspection Report tab removed from ribbon
             st.markdown('</div>', unsafe_allow_html=True)
         st.download_button("⬇ Inspection Report (TXT)", rpt["full_text"],
                            file_name=f"inspection_report_{insp_date}.txt", mime="text/plain")
+        # ── jsPDF PDF block (restored from app_AJ) ───────────────────────────
+        import json as _jinsp
+        _insp_table_rows = [[r["Obs"], r["Raw"][:60], r["Risk"],
+                             r["Regulatory Reference"][:40], r["Corrective Action"], r["Deadline"]]
+                            for r in rpt["rows"]]
+        _insp_pdf = f"""<!DOCTYPE html><html><head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>body{{font-family:system-ui,sans-serif;margin:0;padding:10px;background:#f8fafc;}}
+.pdf-btn{{cursor:pointer;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;border:none;background:#003087;color:white;}}
+.lbl{{font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}}</style>
+</head><body><div class="lbl">PDF download</div>
+<button class="pdf-btn" onclick="genPDF()">&#x1F4C4; Inspection Report (PDF)</button>
+<script>
+const rows={_jinsp.dumps(_insp_table_rows)};
+const site="{insp_site or '[Site]'}"; const siteNo="{insp_sno or '[Site No.]'}";
+const inspector="{insp_name or '[Inspector]'}"; const idate="{insp_date.strftime('%d %B %Y')}";
+const ccN={rpt['critical']}; const mcN={rpt['major']}; const mnN={rpt['minor']};
+const risk=ccN>0?'HIGH':mcN>0?'MEDIUM':'LOW';
+function genPDF(){{
+  const {{jsPDF}}=window.jspdf; const doc=new jsPDF('l','mm','a4');
+  doc.setFillColor(0,48,135); doc.rect(0,0,297,18,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont(undefined,'bold');
+  doc.text('CDSCO GCP SITE INSPECTION REPORT',10,7);
+  doc.setFontSize(8); doc.setFont(undefined,'normal');
+  doc.text('Generated: '+new Date().toLocaleString('en-IN'),200,13);
+  doc.setTextColor(0,0,0); doc.setFontSize(9);
+  doc.text('Site: '+site+'   Site No: '+siteNo+'   Inspector: '+inspector+'   Date: '+idate,10,24);
+  doc.text('SECTION 2: SUMMARY \u2014 Critical: '+ccN+'   Major: '+mcN+'   Minor: '+mnN+'   Overall Risk: '+risk,10,31);
+  doc.autoTable({{
+    head:[['Obs','Observation','Risk','Regulatory Reference','Corrective Action','Deadline']],
+    body:rows,startY:36,
+    headStyles:{{fillColor:[0,48,135],textColor:255,fontStyle:'bold',fontSize:7}},
+    styles:{{fontSize:7,cellPadding:2,overflow:'linebreak'}},
+    columnStyles:{{0:{{cellWidth:16}},1:{{cellWidth:80}},2:{{cellWidth:18}},3:{{cellWidth:80}},4:{{cellWidth:60}},5:{{cellWidth:20}}}},
+    didParseCell:function(d){{
+      if(d.section==='body'&&d.column.index===2){{
+        if(d.cell.raw==='Critical'){{d.cell.styles.fillColor=[254,226,226];d.cell.styles.textColor=[153,27,27];d.cell.styles.fontStyle='bold';}}
+        else if(d.cell.raw==='Major'){{d.cell.styles.fillColor=[254,249,195];d.cell.styles.textColor=[146,64,14];d.cell.styles.fontStyle='bold';}}
+        else{{d.cell.styles.fillColor=[220,252,231];d.cell.styles.textColor=[22,101,52];}}
+      }}
+    }},
+    margin:{{left:10,right:10}}
+  }});
+  const finalY=doc.lastAutoTable.finalY+8;
+  doc.setFontSize(8); doc.setFont(undefined,'bold');
+  doc.text('SECTION 6: RISK LEVEL \u2014 Overall Site Risk: '+risk+(risk==='HIGH'?' \u2014 Immediate action required':risk==='MEDIUM'?' \u2014 Corrective action required':' \u2014 Routine monitoring'),10,finalY);
+  doc.setFontSize(7); doc.setFont(undefined,'normal');
+  doc.text('Generated by Nirnay AI \u2014 CDSCO Hackathon 2026. Regulatory framework: NDCT Rules 2019, Schedule Y, ICMR GCP Guidelines.',10,finalY+6);
+  doc.save('inspection_report_{insp_date}.pdf');
+}}
+</script></body></html>"""
+        _cv1.html(_insp_pdf, height=60)
         add_audit_event("Inspection Report",
                         f"Report generated — {rpt['critical']} Critical, {rpt['major']} Major, {rpt['minor']} Minor",
                         0.92, "AI output generated", "Generated",
