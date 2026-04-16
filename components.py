@@ -87,7 +87,9 @@ section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,25
 .rc.err{border-left-color:#dc2626;background:#fef2f2;}
 .rc.info{border-left-color:#0284c7;background:#f0f9ff;}
 
+/* ── Table wrapper ── */
 .tw{background:white;border-radius:10px;padding:4px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin:8px 0;}
+
 .dup-session{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 18px;margin-bottom:12px;font-size:13px;color:#0369a1;}
 .audio-note{background:#fef9c3;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;font-size:12px;color:#78350f;margin:8px 0;}
 
@@ -103,6 +105,76 @@ section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,25
 .stTextArea textarea{border:1.5px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;background:#fafbfc!important;}
 [data-testid="stMetricValue"]{font-size:24px!important;font-weight:700!important;}
 [data-testid="stMetricLabel"]{font-size:12px!important;color:#64748b!important;}
+
+/* ════════════════════════════════════════════════════════════
+   DATAFRAME / TABLE FIXES  (issues 1–8)
+   ════════════════════════════════════════════════════════════
+
+   1. Column headers — wrap gracefully, readable font size
+   2. Cell text density — readable line-height + min row height
+   3. Row height — uniform via min-height on cells
+   4. Text truncation — long strings show tooltip, don't force column expansion
+   5. Column width — header text wraps instead of columns blowing out
+   6. Status badges — handled via Styler in Python; these rules back that up
+   7. Zebra striping — alternating row background
+   8. Font size — bumped to 13px throughout
+   ════════════════════════════════════════════════════════════ */
+
+/* Scrollable container keeps table from stretching the page */
+[data-testid="stDataFrame"] > div {
+  overflow-x: auto !important;
+}
+
+/* Header cells — fix 1 & 5: wrap text, readable size, no overflow */
+[data-testid="stDataFrame"] thead th,
+[data-testid="stDataFrame"] [role="columnheader"] {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  background-color: #f1f5f9 !important;
+  white-space: normal !important;        /* allow wrapping */
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 10px 12px !important;
+  line-height: 1.4 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  vertical-align: bottom !important;
+  min-width: 80px !important;
+  max-width: 220px !important;
+}
+
+/* Data cells — fix 2, 3, 4, 8 */
+[data-testid="stDataFrame"] tbody td,
+[data-testid="stDataFrame"] [role="gridcell"] {
+  font-size: 13px !important;
+  color: #334155 !important;
+  padding: 10px 12px !important;
+  line-height: 1.5 !important;
+  vertical-align: top !important;
+  min-height: 44px !important;
+  max-width: 260px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;        /* wrap within the capped max-width */
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Fix 7: zebra striping */
+[data-testid="stDataFrame"] tbody tr:nth-child(even) td,
+[data-testid="stDataFrame"] tbody tr:nth-child(even) [role="gridcell"] {
+  background-color: #f8fafc !important;
+}
+
+[data-testid="stDataFrame"] tbody tr:hover td,
+[data-testid="stDataFrame"] tbody tr:hover [role="gridcell"] {
+  background-color: #eff6ff !important;
+}
+
+/* Row borders for visual separation */
+[data-testid="stDataFrame"] tbody tr {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
