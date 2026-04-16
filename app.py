@@ -165,7 +165,7 @@ footer{display:none!important;}
 
             '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #8b5cf6;border-radius:10px;padding:14px;">'
             '<div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">03 &middot; Validation</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Completeness</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Completeness Check</div>'
             '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">20 mandatory fields &middot; RAG flagging</div>'
             '</div>'
 
@@ -177,7 +177,7 @@ footer{display:none!important;}
 
             '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #0ea5e9;border-radius:10px;padding:14px;">'
             '<div style="font-size:11px;font-weight:700;color:#38bdf8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">05 &middot; Diff Engine</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Comparison</div>'
+            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Version Compare</div>'
             '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;">Semantic + structural dossier diff</div>'
             '</div>'
 
@@ -318,85 +318,9 @@ if _active_tab_idx > 0:
 </script>""", height=0)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# COMMAND DASHBOARD TAB (replaces Home)
-# ═══════════════════════════════════════════════════════════════════════════════
-with t_cmd_dash:
-    st.markdown("""
-<div style="background:linear-gradient(135deg,#001f5b 0%,#003087 55%,#0052cc 100%);border-radius:16px;padding:28px 36px;margin-bottom:20px;box-shadow:0 4px 24px rgba(0,48,135,0.18);">
-  <p style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.6);margin:0 0 6px;">CDSCO-IndiaAI Health Innovation Acceleration Hackathon · Stage 1</p>
-  <h1 style="color:white;font-size:24px;font-weight:800;margin:0 0 8px;">Nirnay — AI-Driven Regulatory Workflow</h1>
-  <p style="color:rgba(255,255,255,0.75);font-size:13px;max-width:700px;margin:0 0 16px;">
-    All 6 mandated features from the CDSCO-IndiaAI guidelines implemented and operational.
-    Upload real documents in any tab — sample packets are pre-loaded for quick evaluation.
-  </p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ DPDP Act 2023</span>
-    <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ NDCT Rules 2019</span>
-    <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ ICMR GCP Guidelines</span>
-    <span style="background:rgba(255,255,255,0.12);border:1px solid rgba(74,222,128,0.5);border-radius:20px;padding:4px 12px;font-size:11px;color:#4ade80;font-weight:500;">✓ MeitY AI Ethics</span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    # Judge evaluation guide
-    st.markdown("""
-<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
-  <p style="font-size:12px;font-weight:700;color:#92400e;margin:0 0 8px;">📋 JUDGE EVALUATION GUIDE</p>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#78350f;">
-    <div>• <b>Sample packets pre-loaded</b> — use sidebar to switch between them</div>
-    <div>• <b>Upload real documents</b> in any tab to run live AI processing</div>
-    <div>• <b>Review Workflow tab</b> — walk the full CDSCO reviewer pipeline</div>
-    <div>• <b>All outputs downloadable</b> as PDF, CSV, JSON, or TXT</div>
-    <div>• <b>Audit trail</b> — every AI action and reviewer decision is logged</div>
-    <div>• <b>Claude AI summaries</b> available if API key is configured</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    _features = [
-        ("01", "🔒", "Protected View",    "#003087",
-         "PII/PHI detection and removal from regulatory documents",
-         "Two-step DPDP Act 2023 process: pseudonymisation + irreversible generalisation. Detects patient names, IDs, dates, phone numbers, Aadhaar, hospital records. Full compliance audit log.", 2),
-        ("02", "📄", "Summarisation",     "#0f766e",
-         "Structured summaries for 3 document types",
-         "SAE case narrations → priority/causality/outcome. SUGAM checklists → completeness score. Meeting transcripts → decisions, actions, next steps. Optional Claude AI enhancement.", 3),
-        ("03", "✅", "Completeness Check", "#6d28d9",
-         "NDCT Rules 2019 / Form CT mandatory field assessment",
-         "Checks 20 mandatory fields against CDSCO NDCT Rules 2019 requirements. RAG status per field. Approve / Return / Reject recommendation with critical gap flagging.", 4),
-        ("04", "🏷️", "Classification",   "#b45309",
-         "SAE severity grading + duplicate detection",
-         "Classifies SAEs as DEATH / DISABILITY / HOSPITALISATION / OTHERS per NDCT Rules 2019. ICD-10 mapping, reporting timeline, priority queue. Session-based duplicate cross-detection.", 5),
-        ("05", "🔍", "Version Compare",   "#0369a1",
-         "Semantic document diff with substantive change flagging",
-         "Identifies added, removed, and changed content between two document versions. Classifies each change as substantive or administrative. Colour-coded table, downloadable PDF.", 6),
-        ("06", "📋", "Inspection Report", "#be185d",
-         "CDSCO GCP site inspection report generator",
-         "Converts raw handwritten or typed site observations into formal CDSCO-format reports. Critical / Major / Minor grading per NDCT Rules 2019. CAPA timelines and regulatory references.", 9),
-    ]
-
-    col_a, col_b, col_c = st.columns(3, gap="medium")
-    cols_cycle = [col_a, col_b, col_c]
-    for i, (num, icon, name, colour, title, desc, tab_idx) in enumerate(_features):
-        with cols_cycle[i % 3]:
-            st.markdown(f"""
-<div style="background:#0a2240;border-radius:12px;padding:22px 20px;min-height:240px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;">
-  <div style="position:absolute;right:12px;bottom:-8px;font-size:68px;font-weight:900;color:rgba(255,255,255,0.03);pointer-events:none;">{num}</div>
-  <div>
-    <div style="font-size:24px;margin-bottom:8px;">{icon}</div>
-    <div style="font-size:16px;font-weight:800;color:#FF9933;margin-bottom:4px;">{num} · {name}</div>
-    <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:6px;">{title}</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">{desc}</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-            if st.button(f"Open {name} →", key=f"home_{i}", use_container_width=True, type="primary"):
-                st.session_state["active_tab"] = tab_idx
-                st.rerun()
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — ANONYMISATION
+# TAB 1 — ANONYMISATION (Protected View)
 # ═══════════════════════════════════════════════════════════════════════════════
 with t_anon:
     st.markdown("""
