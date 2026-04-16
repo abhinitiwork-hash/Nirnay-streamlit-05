@@ -108,142 +108,94 @@ header{display:none!important;}
 footer{display:none!important;}
 .stApp{background:#060f1e!important;}
 .block-container{padding:0!important;max-width:100%!important;}
-
-/* Full-page two-panel layout */
-.login-wrap{display:flex;min-height:100vh;width:100%;font-family:'Inter',system-ui,sans-serif;}
-.login-left{flex:1.3;background:#071428;padding:48px 44px;display:flex;flex-direction:column;border-right:1px solid #132140;}
-.login-right{flex:0.8;background:#0d1f3c;padding:48px;display:flex;flex-direction:column;justify-content:center;}
-.brand-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.shield{width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.brand-name{font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;}
-.brand-tag{font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;}
-.orange-line{width:36px;height:2px;background:#FF9933;border-radius:2px;margin:12px 0 18px;}
-.tagline-h{font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;}
-.tagline-h span{color:#FF9933;}
-.tagline-p{font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;max-width:340px;margin-bottom:24px;}
-.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px;flex:1;}
-.feat-card{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:13px 14px;}
-.feat-cat{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;}
-.feat-title{font-size:12px;font-weight:700;color:white;margin-bottom:3px;}
-.feat-desc{font-size:10px;color:rgba(255,255,255,0.38);line-height:1.4;}
-.comp-row{display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);}
-.comp-badge{font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;}
-.hack-row{display:flex;align-items:center;gap:8px;margin-bottom:28px;}
-.hb{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;line-height:1.2;flex-shrink:0;}
-.hb-sep{width:1px;height:16px;background:rgba(255,255,255,0.1);}
-.hb-txt{font-size:9px;color:rgba(255,255,255,0.2);white-space:nowrap;}
-.signin-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
-.signin-title{font-size:22px;font-weight:700;color:white;margin-bottom:26px;}
-.field-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
-.foot-note{font-size:10px;color:rgba(255,255,255,0.18);text-align:center;margin-top:20px;line-height:1.7;}
-
-/* Override Streamlit input styles for dark theme */
-[data-testid="stTextInput"] input{
-  background:rgba(255,255,255,0.05)!important;
-  border:0.5px solid rgba(255,255,255,0.15)!important;
-  border-radius:8px!important;
-  color:white!important;
-  font-size:13px!important;
-  padding:12px 14px!important;
-}
-[data-testid="stTextInput"] input:focus{
-  border-color:rgba(255,153,51,0.6)!important;
-  background:rgba(255,255,255,0.08)!important;
-  box-shadow:none!important;
-}
-[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.22)!important;}
-[data-testid="stTextInput"] label{
-  font-size:9px!important;font-weight:700!important;
-  color:rgba(255,255,255,0.35)!important;
-  letter-spacing:.1em!important;text-transform:uppercase!important;
-}
-[data-testid="stTextInput"] p{
-  font-size:9px!important;font-weight:700!important;
-  color:rgba(255,255,255,0.35)!important;
-  letter-spacing:.1em!important;text-transform:uppercase!important;
-}
-/* Sign in button */
-[data-testid="stButton"] button[kind="primary"]{
-  background:#FF9933!important;
-  border:none!important;
-  border-radius:8px!important;
-  padding:13px!important;
-  font-size:13px!important;
-  font-weight:700!important;
-  color:white!important;
-  letter-spacing:.02em!important;
-  width:100%!important;
-}
-[data-testid="stButton"] button[kind="primary"]:hover{background:#e8871f!important;}
-/* Remove default column gaps */
 [data-testid="column"]{padding:0!important;}
-div[data-testid="stVerticalBlock"]>div{gap:0!important;}
+/* Left column dark background */
+[data-testid="column"]:first-child{background:#071428!important;padding:48px 44px!important;border-right:1px solid #132140!important;}
+/* Right column darker background */
+[data-testid="column"]:last-child{background:#0d1f3c!important;padding:48px 44px!important;}
+/* Input dark styling */
+[data-testid="stTextInput"] input{background:rgba(255,255,255,0.06)!important;border:0.5px solid rgba(255,255,255,0.15)!important;border-radius:8px!important;color:white!important;font-size:13px!important;}
+[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;box-shadow:none!important;}
+[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.25)!important;}
+[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.4)!important;font-size:10px!important;font-weight:700!important;letter-spacing:.08em!important;text-transform:uppercase!important;}
+/* Form submit button */
+[data-testid="stFormSubmitButton"] button{background:#FF9933!important;border:none!important;border-radius:8px!important;color:white!important;font-size:13px!important;font-weight:700!important;width:100%!important;padding:13px!important;}
+[data-testid="stFormSubmitButton"] button:hover{background:#e8871f!important;}
+/* Kill default form border */
+[data-testid="stForm"]{border:none!important;padding:0!important;}
 </style>
 """, unsafe_allow_html=True)
 
-    # ── Left panel HTML ───────────────────────────────────────────────────────
-    st.markdown("""
-<div class="login-wrap">
-<div class="login-left">
-  <div class="brand-row">
-    <div class="shield">
+    _lcol, _rcol = st.columns([13, 10], gap="small")
+
+    # ── LEFT COLUMN — pure HTML, zero Streamlit widgets ──────────────────────
+    with _lcol:
+        st.markdown("""
+<div style="font-family:'Inter',system-ui,sans-serif;min-height:640px;display:flex;flex-direction:column;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <div style="width:34px;height:34px;border-radius:9px;background:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
     </div>
-    <span class="brand-name">Nirnay</span>
-    <span class="brand-tag">AI Review System</span>
+    <span style="font-size:19px;font-weight:800;color:white;letter-spacing:-0.6px;">Nirnay</span>
+    <span style="font-size:9px;color:rgba(255,255,255,0.3);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 9px;">AI Review System</span>
   </div>
-  <div class="orange-line"></div>
-  <div class="tagline-h">Regulatory review,<br><span>reimagined for India.</span></div>
-  <div class="tagline-p">All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</div>
-  <div class="feat-grid">
-    <div class="feat-card" style="border-top:2px solid #0052cc;"><div class="feat-cat" style="color:#60a5fa;">01 · Privacy</div><div class="feat-title">Anonymisation</div><div class="feat-desc">DPDP Act 2023 · two-step PII removal</div></div>
-    <div class="feat-card" style="border-top:2px solid #0f766e;"><div class="feat-cat" style="color:#34d399;">02 · Intelligence</div><div class="feat-title">Summarisation</div><div class="feat-desc">SAE · checklists · meeting audio</div></div>
-    <div class="feat-card" style="border-top:2px solid #6d28d9;"><div class="feat-cat" style="color:#a78bfa;">03 · Validation</div><div class="feat-title">Completeness</div><div class="feat-desc">20 mandatory fields · RAG flagging</div></div>
-    <div class="feat-card" style="border-top:2px solid #b45309;"><div class="feat-cat" style="color:#fbbf24;">04 · Triage</div><div class="feat-title">Classification</div><div class="feat-desc">SAE severity · duplicate detection</div></div>
-    <div class="feat-card" style="border-top:2px solid #0369a1;"><div class="feat-cat" style="color:#38bdf8;">05 · Diff Engine</div><div class="feat-title">Comparison</div><div class="feat-desc">Semantic + structural dossier diff</div></div>
-    <div class="feat-card" style="border-top:2px solid #be185d;"><div class="feat-cat" style="color:#f472b6;">06 · Generation</div><div class="feat-title">Inspection Report</div><div class="feat-desc">Typed / audio → CDSCO GCP report</div></div>
+  <div style="width:36px;height:2px;background:#FF9933;border-radius:2px;margin:10px 0 18px;"></div>
+  <div style="font-size:22px;font-weight:700;color:white;line-height:1.3;margin-bottom:9px;">Regulatory review,<br><span style="color:#FF9933;">reimagined for India.</span></div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.38);line-height:1.7;margin-bottom:22px;">All 6 CDSCO-mandated AI features in one platform. Upload real documents — structured regulatory outputs in seconds.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px;flex:1;">
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0052cc;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#60a5fa;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">01 · Privacy</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Anonymisation</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">DPDP Act 2023 · two-step PII removal</div></div>
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0f766e;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#34d399;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">02 · Intelligence</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Summarisation</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">SAE · checklists · meeting audio</div></div>
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #6d28d9;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#a78bfa;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">03 · Validation</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Completeness</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">20 mandatory fields · RAG flagging</div></div>
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #b45309;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#fbbf24;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">04 · Triage</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Classification</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">SAE severity · duplicate detection</div></div>
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #0369a1;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#38bdf8;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">05 · Diff Engine</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Comparison</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">Semantic + structural dossier diff</div></div>
+    <div style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-top:2px solid #be185d;border-radius:10px;padding:13px 14px;"><div style="font-size:8px;font-weight:700;color:#f472b6;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">06 · Generation</div><div style="font-size:12px;font-weight:700;color:white;margin-bottom:3px;">Inspection Report</div><div style="font-size:10px;color:rgba(255,255,255,0.38);">Typed / audio → CDSCO GCP report</div></div>
   </div>
-  <div class="comp-row">
-    <span class="comp-badge">✓ DPDP Act 2023</span>
-    <span class="comp-badge">✓ NDCT Rules 2019</span>
-    <span class="comp-badge">✓ ICMR GCP</span>
-    <span class="comp-badge">✓ MeitY AI Ethics</span>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.07);">
+    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ DPDP Act 2023</span>
+    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ NDCT Rules 2019</span>
+    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ ICMR GCP</span>
+    <span style="font-size:9px;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.08);border:0.5px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 9px;">✓ MeitY AI Ethics</span>
   </div>
-</div>
-<div class="login-right">
-  <div class="hack-row">
-    <div class="hb">India<br>AI</div>
-    <div class="hb-sep"></div>
-    <div class="hb">CD<br>SCO</div>
-    <span class="hb-txt">Hackathon 2026 · Stage 1</span>
-  </div>
-  <div class="signin-label">Authorised access only</div>
-  <div class="signin-title">Sign in</div>
-""", unsafe_allow_html=True)
-
-    # ── Native Streamlit inputs (guaranteed to work on Streamlit Cloud) ───────
-    _uname = st.text_input("USERNAME", placeholder="Username", key="login_uname")
-    _pwd   = st.text_input("PASSWORD", placeholder="Password", type="password", key="login_pwd")
-
-    if st.session_state["_login_failed"]:
-        st.markdown('<p style="color:#f87171;font-size:11px;margin:4px 0 0;">⚠ Invalid credentials. Please try again.</p>', unsafe_allow_html=True)
-
-    _do_login = st.button("Sign in →", key="login_btn", use_container_width=True, type="primary")
-
-    st.markdown("""
-  <div class="foot-note">Authorised CDSCO personnel only.<br>All sessions are logged for compliance.</div>
-</div>
 </div>
 """, unsafe_allow_html=True)
 
-    if _do_login:
-        if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
-            st.session_state["logged_in"]    = True
-            st.session_state["_login_failed"] = False
-            st.rerun()
-        else:
-            st.session_state["_login_failed"] = True
-            st.rerun()
+    # ── RIGHT COLUMN — st.form only, zero unclosed HTML ───────────────────────
+    with _rcol:
+        # IndiaAI + CDSCO badge — single line
+        st.markdown("""
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:32px;flex-wrap:nowrap;">
+  <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.45);text-align:center;line-height:1.3;flex-shrink:0;">India<br>AI</div>
+  <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+  <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:rgba(255,255,255,0.45);text-align:center;line-height:1.3;flex-shrink:0;">CD<br>SCO</div>
+  <span style="font-size:10px;color:rgba(255,255,255,0.25);white-space:nowrap;">Hackathon 2026 · Stage 1</span>
+</div>
+<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">Authorised access only</div>
+<div style="font-size:22px;font-weight:700;color:white;margin-bottom:22px;">Sign in</div>
+""", unsafe_allow_html=True)
+
+        with st.form("login_form", clear_on_submit=False):
+            _uname = st.text_input("Username", placeholder="Username", key="login_uname")
+            _pwd   = st.text_input("Password", placeholder="Password",
+                                   type="password", key="login_pwd")
+            if st.session_state["_login_failed"]:
+                st.markdown('<p style="color:#f87171;font-size:11px;margin:2px 0 6px;">⚠ Invalid credentials. Please try again.</p>',
+                            unsafe_allow_html=True)
+            _submitted = st.form_submit_button("Sign in →", use_container_width=True)
+
+        st.markdown("""
+<div style="font-size:10px;color:rgba(255,255,255,0.2);text-align:center;margin-top:18px;line-height:1.7;">
+  Authorised CDSCO personnel only.<br>All sessions are logged for compliance.
+</div>
+""", unsafe_allow_html=True)
+
+        if _submitted:
+            if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
+                st.session_state["logged_in"]     = True
+                st.session_state["_login_failed"] = False
+                st.rerun()
+            else:
+                st.session_state["_login_failed"] = True
+                st.rerun()
 
     st.stop()
 
@@ -269,12 +221,9 @@ st.markdown("""
 
 # Sidebar hint strip
 st.markdown("""
-<div style="background:#eff6ff;border-bottom:0.5px solid #bfdbfe;padding:6px 16px;display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <span style="font-size:11px;color:#2563eb;font-weight:500;">Expand the sidebar on the left — sample case packets &amp; full review workflow</span>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
-""" + (f'<span style="font-size:10px;color:#16a34a;font-weight:600;">✓ Claude AI active</span>' if CLAUDE_OK else "") + """
-  </div>
+<div style="background:#FF9933;padding:10px 20px;display:flex;align-items:center;gap:10px;margin-bottom:10px;border-radius:8px;">
+  <span style="font-size:18px;font-weight:900;color:white;">&#8250;</span>
+  <span style="font-size:13px;font-weight:700;color:white;">Click the <b style="background:rgba(0,0,0,0.15);padding:1px 6px;border-radius:4px;">&nbsp;&gt;&nbsp;</b> arrow at the top-left corner of your screen to open the sidebar — sample case packets &amp; review workflow are there</span>
 </div>
 """, unsafe_allow_html=True)
 
