@@ -46,6 +46,29 @@ CLAUDE_MODEL = "claude-haiku-4-5-20251001"  # free-tier compatible
 # FILE EXTRACTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _extract_docx_text(doc) -> str:
+    """Extract paragraph and table content from DOCX files."""
+    parts: list[str] = []
+
+    def add(text: str) -> None:
+        cleaned = text.strip()
+        if cleaned:
+            parts.append(cleaned)
+
+    def walk_tables(tables) -> None:
+        for table in tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        add(paragraph.text)
+                    if cell.tables:
+                        walk_tables(cell.tables)
+
+    for paragraph in doc.paragraphs:
+        add(paragraph.text)
+    walk_tables(doc.tables)
+    return "\n".join(parts).strip()
+
 def _resolve_pdf_reader():
     """Resolve an available PDF reader at call time to avoid stale import state."""
     errors: list[str] = []
@@ -77,7 +100,13 @@ def extract_text(uploaded_file) -> tuple[str, str | None]:
             if not DOCX_OK:
                 return "", "Install python-docx: add to requirements.txt"
             doc = python_docx.Document(io.BytesIO(raw))
-            return "\n".join(p.text for p in doc.paragraphs if p.text.strip()), None
+            extracted = _extract_docx_text(doc)
+            if not extracted:
+                return "", (
+                    f"No extractable text found in {uploaded_file.name}. "
+                    "The DOCX may contain only images or unsupported embedded content."
+                )
+            return extracted, None
         elif name.endswith(".pdf"):
             reader_cls, reader_name, reader_error = _resolve_pdf_reader()
             if reader_error:
