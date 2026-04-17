@@ -7,11 +7,14 @@ Imports from demo_data.py (sample packets) and engine.py (processing).
 
 from __future__ import annotations
 
+import base64
 import csv
 import io
 import json
 from copy import deepcopy
 from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -30,6 +33,29 @@ from demo_data import (
 from engine import CLAUDE_OK, CLAUDE_MODEL  # noqa: F401
 
 
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+
+
+@lru_cache(maxsize=None)
+def _asset_data_uri(filename: str) -> str:
+    path = ASSETS_DIR / filename
+    if not path.exists():
+        return ""
+
+    mime = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+    }.get(path.suffix.lower(), "application/octet-stream")
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
+HINDI_LOGO_DATA_URI = _asset_data_uri("nirnay-logo-hi.png")
+ENGLISH_LOGO_DATA_URI = _asset_data_uri("nirnay-logo-en.png")
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIG & STYLES
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -45,7 +71,12 @@ def apply_styles() -> None:
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 html,body,[class*="css"]{font-family:'Inter',sans-serif;}
 #MainMenu,footer,header{visibility:hidden;}
-.stApp{background-color:#f0f3f8;}
+.stApp{
+  background:
+    radial-gradient(circle at 10% 8%, rgba(135, 208, 196, 0.28), transparent 26%),
+    radial-gradient(circle at 88% 10%, rgba(150, 209, 244, 0.32), transparent 30%),
+    linear-gradient(180deg, #f5fcfb 0%, #eef7fb 48%, #eef8f2 100%);
+}
 
 section[data-testid="stSidebar"]{display:none!important;}
 [data-testid="collapsedControl"]{display:none!important;}
@@ -53,9 +84,13 @@ section[data-testid="stSidebar"]{display:none!important;}
 .hero{background:linear-gradient(135deg,#001f5b 0%,#003087 55%,#0052cc 100%);border-radius:16px;padding:28px 36px;margin-bottom:18px;box-shadow:0 4px 24px rgba(0,48,135,0.18);}
 .hero h1{color:white;font-size:28px;font-weight:800;margin:0;}
 .hero .sub{color:rgba(255,255,255,0.68);font-size:13px;margin:5px 0 0;}
+.hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+.hero-copy{flex:1;min-width:250px;}
 .hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .hbadge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.9);font-weight:500;}
 .hbadge.g{border-color:#4ade80;color:#4ade80;}
+.hero-brand{display:none!important;align-items:center;justify-content:center;flex-shrink:0;max-width:280px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);box-shadow:0 8px 18px rgba(6,15,30,0.18);}
+.hero-brand img{display:block;max-width:100%;height:auto;border-radius:10px;}
 
 .card{background:rgba(255,255,255,0.96);border:1px solid rgba(11,63,117,0.12);border-radius:16px;padding:1rem 1.1rem;box-shadow:0 10px 24px rgba(11,63,117,0.05);margin-bottom:1rem;}
 .case-chip{display:inline-block;background:rgba(24,166,184,0.12);color:#0b3f75;border:1px solid rgba(24,166,184,0.24);border-radius:999px;padding:0.2rem 0.55rem;font-size:0.78rem;font-weight:600;}
@@ -189,6 +224,15 @@ section[data-testid="stSidebar"]{display:none!important;}
   display: flex;
   align-items: center;
   gap: 14px;
+}
+.top-brand-shell{display:flex;align-items:center;justify-content:flex-start;padding:2px 0;background:transparent;border:none;box-shadow:none;}
+.top-brand-logo-hi{display:block;width:auto;max-width:100%;max-height:44px;height:auto;margin:0;}
+.top-brand-caption{font-size:11px;color:#64748b;text-align:left;margin:0;font-weight:600;}
+
+@media (max-width: 960px) {
+  .hero{padding:24px 22px;}
+  .hero-brand{width:100%;max-width:none;}
+  .top-brand-logo-hi{max-height:36px;}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -431,14 +475,18 @@ def generate_audit_packet() -> dict:
 def render_banner(title: str, subtitle: str) -> None:
     st.markdown(f"""
 <div class="hero">
-  <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;color:rgba(255,255,255,0.82);">{DEMO_MODE_LABEL}</p>
-  <h1>{title}</h1>
-  <p class="sub">{subtitle}</p>
-  <div class="hero-badges">
-    <span class="hbadge g">✓ DPDP Act 2023</span>
-    <span class="hbadge g">✓ NDCT Rules 2019</span>
-    <span class="hbadge g">✓ ICMR GCP</span>
-    <span class="hbadge g">✓ MeitY AI Ethics</span>
+  <div class="hero-head">
+    <div class="hero-copy">
+      <p style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;color:rgba(255,255,255,0.82);">{DEMO_MODE_LABEL}</p>
+      <h1>{title}</h1>
+      <p class="sub">{subtitle}</p>
+      <div class="hero-badges">
+        <span class="hbadge g">✓ DPDP Act 2023</span>
+        <span class="hbadge g">✓ NDCT Rules 2019</span>
+        <span class="hbadge g">✓ ICMR GCP</span>
+        <span class="hbadge g">✓ MeitY AI Ethics</span>
+      </div>
+    </div>
   </div>
   <p style="margin-top:0.8rem;font-size:0.85rem;color:rgba(255,255,255,0.88);">{APP_DISCLAIMER}</p>
 </div>

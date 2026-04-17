@@ -37,14 +37,17 @@ import datetime
 import hashlib
 import json as _json
 import re
+from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as _cv1
 
+from demo_data import get_case_library
 from components import (
     APP_DISCLAIMER,
     CLAUDE_OK,
+    HINDI_LOGO_DATA_URI,
     SCREENS,
     add_audit_event,
     ai_recommendation_card,
@@ -99,6 +102,22 @@ if "_login_failed" not in st.session_state:
 VALID_USER = "admin"
 VALID_PASS = "nirnay2026"
 
+LANDING_STAGE_ROUTES = {
+    "Intake": {"screen": "Document Intake", "active_tab": 1, "active_ribbon_tab": "📥 Document Intake"},
+    "Protected View": {"screen": "Protected View", "active_tab": 2, "active_ribbon_tab": "🕵️ Anonymisation"},
+    "Triage": {"screen": "Command Dashboard", "active_tab": 5, "active_ribbon_tab": "🏷️ Categorisation"},
+    "Validation": {"screen": "Command Dashboard", "active_tab": 4, "active_ribbon_tab": "✅ Completeness"},
+    "Compare": {"screen": "Version Compare", "active_tab": 6, "active_ribbon_tab": "🔄 Version Compare"},
+    "Audit Packet": {"screen": "Audit Trail", "active_tab": 8, "active_ribbon_tab": "📜 Audit Trail"},
+}
+
+
+def apply_landing_stage_route(stage_name: str) -> None:
+    route = LANDING_STAGE_ROUTES.get(stage_name, LANDING_STAGE_ROUTES["Intake"])
+    st.session_state.screen = route["screen"]
+    st.session_state.active_tab = route["active_tab"]
+    st.session_state.active_ribbon_tab = route["active_ribbon_tab"]
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # LOGIN PAGE — native Streamlit inputs, full CSS dark styling
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -110,178 +129,1031 @@ if not st.session_state["logged_in"]:
 section[data-testid="stSidebar"]{display:none!important;}
 header{display:none!important;}
 footer{display:none!important;}
-
-/* App background */
-.stApp{background-color:#060f1e!important;}
-
-/* Constrain and centre the main container — prevents full-bleed bleed on wide screens */
-.block-container{
-  padding:0!important;
-  max-width:1200px!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
+.stApp{
+  background:
+    radial-gradient(circle at top left, rgba(255,159,47,0.12), transparent 26%),
+    radial-gradient(circle at 86% 18%, rgba(37,99,235,0.11), transparent 24%),
+    #06101f!important;
+  color:#e2e8f0!important;
 }
-
-/* Remove default column padding; prevent any child from overflowing its box */
+.block-container{
+  max-width:1360px!important;
+  padding:28px 26px 56px!important;
+}
 [data-testid="column"]{
-  padding:0!important;
   min-width:0!important;
+}
+.landing-shell{
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+}
+.authority-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  padding-bottom:18px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.authority-left{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+.authority-left img{
+  display:block;
+  max-width:240px;
+  width:100%;
+  height:auto;
+  border-radius:18px;
+  box-shadow:0 18px 34px rgba(0,0,0,0.18);
+}
+.authority-stack{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-width:720px;
+}
+.authority-kicker{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.45);
+}
+.authority-title{
+  font-size:15px;
+  line-height:1.6;
+  color:#cbd5e1;
+}
+.authority-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.authority-chip{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:11px;
+  font-weight:700;
+  color:#e2e8f0;
+  background:rgba(255,255,255,0.04);
+}
+.authority-wordmark{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+}
+.authority-wordmark img{
+  display:block;
+  max-width:160px;
+  width:100%;
+  height:auto;
+  border-radius:10px;
+}
+.section-kicker{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.42);
+  margin-bottom:10px;
+}
+.hero-title{
+  font-size:58px;
+  line-height:1.02;
+  font-weight:800;
+  letter-spacing:-0.04em;
+  color:#f8fafc;
+  margin:0 0 14px;
+}
+.hero-sub{
+  font-size:18px;
+  line-height:1.65;
+  color:#94a3b8;
+  max-width:760px;
+  margin-bottom:20px;
+}
+.live-metric{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  padding:16px 18px;
+  min-height:118px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.live-metric-label{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.44);
+  margin-bottom:12px;
+}
+.live-metric-value{
+  font-size:28px;
+  font-weight:800;
+  color:#f8fafc;
+  margin-bottom:6px;
+}
+.live-metric-detail{
+  font-size:13px;
+  line-height:1.55;
+  color:#94a3b8;
+}
+.workflow-detail{
+  background:linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.03));
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;
+  padding:18px 20px;
+  margin-top:14px;
+}
+.workflow-status{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  background:rgba(255,159,47,0.12);
+  border:1px solid rgba(255,159,47,0.26);
+  color:#ffd7a4;
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.workflow-title{
+  font-size:24px;
+  font-weight:700;
+  color:#f8fafc;
+  margin-bottom:8px;
+}
+.workflow-copy{
+  font-size:14px;
+  line-height:1.7;
+  color:#94a3b8;
+  margin-bottom:16px;
+}
+.workflow-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.workflow-cell{
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding-top:10px;
+}
+.workflow-cell-label{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.4);
+  margin-bottom:4px;
+}
+.workflow-cell-value{
+  font-size:13px;
+  line-height:1.55;
+  color:#e2e8f0;
+}
+.signal-panel,
+.access-panel,
+.trust-detail{
+  background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.035));
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:22px;
+  padding:20px 22px;
+  box-shadow:0 20px 34px rgba(0,0,0,0.16);
+}
+.signal-panel{
+  min-height:430px;
+}
+.panel-eyebrow{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.44);
+  margin-bottom:10px;
+}
+.panel-title{
+  font-size:28px;
+  font-weight:800;
+  color:#f8fafc;
+  line-height:1.1;
+  margin-bottom:10px;
+}
+.panel-sub{
+  font-size:14px;
+  line-height:1.7;
+  color:#94a3b8;
+  margin-bottom:18px;
+}
+.panel-chip-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:18px;
+}
+.panel-chip{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);
+  color:#e2e8f0;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:700;
+}
+.panel-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.panel-stat{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:14px;
+}
+.panel-stat-label{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.4);
+  margin-bottom:5px;
+}
+.panel-stat-value{
+  font-size:15px;
+  font-weight:700;
+  color:#f8fafc;
+  line-height:1.45;
+}
+.panel-note{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:13px;
+  line-height:1.6;
+  color:#cbd5e1;
+}
+.landing-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.landing-section-title{
+  font-size:28px;
+  font-weight:800;
+  color:#f8fafc;
+  letter-spacing:-0.03em;
+}
+.landing-section-copy{
+  font-size:14px;
+  color:#94a3b8;
+  max-width:760px;
+  line-height:1.6;
+}
+.workflow-row{
+  display:grid;
+  grid-template-columns:90px 1.05fr 1.2fr 1fr;
+  gap:14px;
+  align-items:start;
+  padding:14px 0;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.workflow-row:first-child{
+  border-top:none;
+  padding-top:0;
+}
+.workflow-row-step{
+  font-size:12px;
+  font-weight:700;
+  color:#ffd7a4;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.workflow-row-title{
+  font-size:15px;
+  font-weight:700;
+  color:#f8fafc;
+  margin-bottom:4px;
+}
+.workflow-row-copy,
+.workflow-row-gate{
+  font-size:13px;
+  line-height:1.6;
+  color:#94a3b8;
+}
+[data-testid="stExpander"]{
+  background:rgba(255,255,255,0.04)!important;
+  border:1px solid rgba(255,255,255,0.08)!important;
+  border-radius:18px!important;
   overflow:hidden!important;
 }
-
-/* Left column — features grid */
-[data-testid="column"]:first-child{
-  background-color:#071428!important;
-  padding:52px 48px!important;
-  border-right:1px solid rgba(255,255,255,0.05)!important;
-  overflow-wrap:break-word!important;
-  word-wrap:break-word!important;
+[data-testid="stExpander"] details{
+  background:transparent!important;
 }
-
-/* Right column — login panel — fixed max-width so it never pushes off-canvas */
-[data-testid="column"]:last-child{
-  background-color:#0d1f3c!important;
-  padding:52px 40px!important;
-  max-width:420px!important;
-  flex-shrink:0!important;
+[data-testid="stExpander"] details summary{
+  padding:2px 0!important;
 }
-
-/* Inputs */
-[data-testid="stTextInput"] input{background-color:#071224!important;border:1.5px solid rgba(255,255,255,0.18)!important;border-radius:9px!important;color:#f1f5f9!important;font-size:14px!important;}
-[data-testid="stTextInput"] input:focus{border-color:#FF9933!important;outline:none!important;}
-[data-testid="stTextInput"] input::placeholder{color:rgba(255,255,255,0.3)!important;}
-[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{color:rgba(255,255,255,0.7)!important;font-size:11px!important;font-weight:700!important;letter-spacing:.1em!important;text-transform:uppercase!important;}
-
-/* Submit button */
-[data-testid="stFormSubmitButton"] button{background-color:#FF9933!important;border:none!important;border-radius:9px!important;color:white!important;font-size:14px!important;font-weight:700!important;width:100%!important;padding:13px!important;}
-[data-testid="stFormSubmitButton"] button:hover{background-color:#e8821a!important;}
-[data-testid="stForm"]{border:none!important;padding:0!important;background-color:transparent!important;}
+[data-testid="stExpander"] details summary p{
+  font-size:14px!important;
+  font-weight:700!important;
+  color:#f8fafc!important;
+}
+[data-testid="stExpanderDetails"]{
+  padding-top:6px!important;
+}
+.capability-note{
+  font-size:13px;
+  line-height:1.65;
+  color:#94a3b8;
+}
+.trust-title{
+  font-size:20px;
+  font-weight:700;
+  color:#f8fafc;
+  margin-bottom:6px;
+}
+.trust-copy{
+  font-size:14px;
+  line-height:1.7;
+  color:#cbd5e1;
+  margin-bottom:10px;
+}
+.trust-signal{
+  font-size:13px;
+  line-height:1.6;
+  color:#94a3b8;
+}
+.landing-footer{
+  margin-top:10px;
+  padding-top:18px;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:12px;
+  color:rgba(255,255,255,0.42);
+  text-align:center;
+}
+.stButton>button{
+  border-radius:14px!important;
+  border:1px solid rgba(255,255,255,0.12)!important;
+  background:rgba(255,255,255,0.035)!important;
+  color:#e2e8f0!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  min-height:46px!important;
+  box-shadow:none!important;
+}
+.stButton>button:hover{
+  border-color:rgba(255,159,47,0.45)!important;
+  color:white!important;
+}
+.stButton>button[kind="primary"],
+[data-testid="stFormSubmitButton"] button{
+  background:#ff9f2f!important;
+  color:#07111f!important;
+  border:1px solid #ffbf73!important;
+}
+[data-testid="stFormSubmitButton"] button:hover{
+  background:#ffb14e!important;
+}
+[data-testid="stTextInput"] label,
+[data-testid="stTextInput"] p{
+  color:rgba(255,255,255,0.62)!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+}
+[data-testid="stTextInput"] input{
+  background:#071426!important;
+  border:1.5px solid rgba(255,255,255,0.14)!important;
+  border-radius:12px!important;
+  color:#f8fafc!important;
+  font-size:14px!important;
+}
+[data-testid="stTextInput"] input::placeholder{
+  color:rgba(255,255,255,0.28)!important;
+}
+[data-testid="stTextInput"] input:focus{
+  border-color:#ff9f2f!important;
+  outline:none!important;
+}
+[data-testid="stForm"]{
+  background:transparent!important;
+  border:none!important;
+  padding:0!important;
+}
+@media (max-width: 1080px){
+  .hero-title{font-size:44px;}
+  .panel-grid,
+  .workflow-grid{grid-template-columns:1fr;}
+  .workflow-row{grid-template-columns:70px 1fr;}
+}
+@media (max-width: 768px){
+  .block-container{padding:18px 16px 42px!important;}
+  .hero-title{font-size:36px;}
+  .hero-sub{font-size:16px;}
+  .authority-left img{max-width:190px;}
+}
+.stApp{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(135, 208, 196, 0.26), transparent 26%),
+    radial-gradient(circle at 86% 10%, rgba(150, 209, 244, 0.3), transparent 30%),
+    linear-gradient(180deg, #f5fcfb 0%, #eef7fb 48%, #eef8f2 100%)!important;
+  color:#1f2937!important;
+}
+.block-container{padding:8px 24px 48px!important;}
+.landing-topbar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+  padding-bottom:14px;
+  margin-bottom:14px;
+  border-bottom:1px solid #dbe4ef;
+}
+.landing-brand-stack{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+}
+.landing-brand img{
+  display:block;
+  max-width:170px;
+  width:100%;
+  height:auto;
+  border-radius:12px;
+}
+.landing-markers{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  margin-left:0;
+}
+.landing-marker{
+  display:inline-flex;
+  align-items:center;
+  padding:0 12px;
+  font-size:12px;
+  font-weight:600;
+  color:#6b7d92;
+  background:none;
+  border:none;
+  line-height:1;
+}
+.landing-marker + .landing-marker{
+  border-left:1px solid #dbe4ef;
+}
+.hero-card,.preview-card,.access-card,.stage-panel{
+  background:rgba(255,255,255,0.94);
+  border:1px solid #dbe4ef;
+  border-radius:24px;
+  box-shadow:0 18px 42px rgba(51,74,107,0.08);
+}
+.hero-card{
+  padding:28px 30px;
+  background:
+    radial-gradient(circle at top right, rgba(255,153,51,0.10), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(19,92,175,0.07), transparent 30%),
+    rgba(255,255,255,0.95);
+}
+.hero-kicker{
+  font-size:12px;
+  font-weight:700;
+  color:#5d748d;
+  margin-bottom:10px;
+}
+.hero-title{font-size:52px;color:#1f2937;line-height:1.05;margin:0 0 12px;}
+.hero-sub{font-size:17px;line-height:1.7;color:#69798e;max-width:720px;margin-bottom:0;}
+.metric-tile{
+  background:#f8fafc;
+  border:1px solid #dde6f0;
+  border-radius:18px;
+  padding:16px 18px;
+  min-height:102px;
+}
+.metric-label{font-size:11px;font-weight:600;color:#6c7d91;margin-bottom:10px;}
+.metric-value{font-size:28px;font-weight:800;color:#184d8d;margin-bottom:4px;}
+.metric-detail{font-size:13px;line-height:1.55;color:#6b7b90;}
+.preview-card{padding:24px 24px 20px;min-height:318px;}
+.preview-eyebrow{font-size:12px;font-weight:700;color:#5e7490;margin-bottom:10px;}
+.preview-title{font-size:26px;line-height:1.15;font-weight:800;color:#1f2937;margin-bottom:10px;}
+.preview-copy{font-size:14px;line-height:1.65;color:#6b7b90;margin-bottom:16px;}
+.preview-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.preview-field{
+  padding:13px 14px;
+  border-radius:16px;
+  border:1px solid #e0e8f1;
+  background:#f8fafc;
+}
+.preview-label{font-size:11px;color:#708196;margin-bottom:4px;}
+.preview-value{font-size:15px;font-weight:700;color:#1f2937;line-height:1.45;}
+.access-card{padding:18px 22px 16px;margin-top:14px;}
+.access-title{font-size:22px;font-weight:800;color:#1f2937;margin-bottom:6px;}
+.access-copy{font-size:13px;line-height:1.6;color:#718197;margin-bottom:12px;}
+.workflow-strip-title{font-size:13px;font-weight:700;color:#61768f;margin:18px 0 8px;}
+[data-testid="stRadio"] > label{display:none!important;}
+[data-testid="stRadio"] [role="radiogroup"]{
+  display:flex;
+  gap:22px;
+  flex-wrap:wrap;
+  border-bottom:1px solid #dbe4ef;
+  padding:0 0 10px;
+}
+[data-testid="stRadio"] label{
+  display:flex!important;
+  align-items:center;
+  padding:0 0 10px 0!important;
+  border-bottom:2px solid transparent;
+  margin:0!important;
+  color:#73859c!important;
+  font-size:14px!important;
+  font-weight:600!important;
+  background:transparent!important;
+}
+[data-testid="stRadio"] label > div:first-child{display:none!important;}
+[data-testid="stRadio"] label:has(input:checked){
+  color:#1d4d8d!important;
+  border-bottom-color:#1d4d8d;
+}
+.stage-panel{margin-top:18px;padding:22px 24px;}
+.stage-panel-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.stage-name{font-size:24px;font-weight:800;color:#1f2937;margin-bottom:6px;}
+.stage-copy{font-size:14px;line-height:1.7;color:#68788e;max-width:780px;}
+.stage-accent{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#eef5ff;
+  border:1px solid #cfe0f7;
+  color:#22508d;
+  font-size:12px;
+  font-weight:700;
+}
+.stage-signal-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin:16px 0 18px;
+}
+.stage-signal{
+  padding:14px 16px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #dfe7f0;
+}
+.stage-signal-label{font-size:11px;color:#708297;margin-bottom:5px;}
+.stage-signal-value{font-size:14px;font-weight:700;color:#223246;line-height:1.55;}
+.landing-footer{
+  margin-top:18px;
+  padding-top:18px;
+  border-top:1px solid #dbe4ef;
+  text-align:center;
+  font-size:11px!important;
+  color:#7b8795;
+}
+.stButton>button{
+  min-height:44px!important;
+  border-radius:14px!important;
+  border:1px solid #d6dfeb!important;
+  background:#ffffff!important;
+  color:#26456f!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  box-shadow:none!important;
+}
+.stButton>button:hover{border-color:#aac1df!important;color:#1b4c8c!important;}
+.stButton>button[kind="primary"],[data-testid="stFormSubmitButton"] button{
+  background:#20528f!important;
+  color:#ffffff!important;
+  border:1px solid #20528f!important;
+}
+[data-testid="stFormSubmitButton"] button:hover{background:#17457f!important;}
+[data-testid="stTextInput"] label,[data-testid="stTextInput"] p{
+  color:#6b7d93!important;
+  font-size:11px!important;
+  font-weight:600!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+[data-testid="stTextInput"] input{
+  background:#f8fafc!important;
+  border:1.4px solid #d7e1ec!important;
+  border-radius:12px!important;
+  color:#1f2937!important;
+  font-size:14px!important;
+}
+[data-testid="stTextInput"] input:focus{border-color:#7aa0d5!important;outline:none!important;}
+[data-testid="stForm"]{background:transparent!important;border:none!important;padding:0!important;}
+@media (max-width: 1100px){
+  .hero-title{font-size:42px;}
+  .preview-grid,.stage-signal-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width: 760px){
+  .block-container{padding:8px 16px 38px!important;}
+  .hero-title{font-size:34px;}
+  .hero-sub{font-size:15px;}
+  .landing-brand img{max-width:180px;}
+  .preview-grid,.stage-signal-grid{grid-template-columns:1fr;}
+}
 </style>
 """, unsafe_allow_html=True)
+    sample_case = deepcopy(st.session_state.demo_cases[st.session_state.active_case_key])
+    protected_count = len(sample_case["protected_view"]["entities"])
+    compare_count = len(sample_case["documents"]["amendment"]["changes"])
+    missing_count = len([item for item in sample_case["sae_review"]["missing_info"] if not item["resolved"]])
 
-    _lcol, _rcol = st.columns([13, 10], gap="small")
+    if "landing_stage" not in st.session_state:
+        st.session_state["landing_stage"] = "Intake"
+    if "landing_show_workflow" not in st.session_state:
+        st.session_state["landing_show_workflow"] = False
+    if "landing_stage_selector" in st.session_state:
+        st.session_state["landing_stage"] = st.session_state["landing_stage_selector"]
 
-    with _lcol:
-        st.markdown(
-            '<div style="font-family:Inter,system-ui,sans-serif;min-height:640px;display:flex;flex-direction:column;min-width:0;">'
+    workflow_stages = [
+        {
+            "key": "Intake",
+            "step": "01",
+            "title": "Intake",
+            "status": "Source ingestion live",
+            "headline": "Packet intake is indexing the submission and source chain before reviewer routing.",
+            "summary": "SUGAM submission metadata, source integrity, and packet identity are normalised as the first operational gate.",
+            "document_type": sample_case["documents"]["submission"]["type"],
+            "document_name": sample_case["documents"]["submission"]["name"],
+            "pii_masked": "Queued after routing",
+            "seriousness_score": "74 / 100",
+            "packet_readiness": "2 of 6 stages primed",
+            "latest_action": "Submission packet mirrored from SUGAM intake",
+            "metrics": [
+                {"label": "Signals indexed", "value": "12", "detail": "Sponsor, site, investigator, and packet identity fields mapped."},
+                {"label": "Reviewer gate", "value": "Ready", "detail": "Packet can route into protected review without manual re-entry."},
+                {"label": "Escalations", "value": "1 open", "detail": "Form CT-04 signatory verification remains queued."},
+            ],
+            "input": "Submission packet mirrored from source intake and normalised into the active review queue.",
+            "output": "Document category, source fingerprint, and routing recommendation generated with source references.",
+            "gate": "Reviewer confirms the intake lane before protected processing begins.",
+        },
+        {
+            "key": "Protected View",
+            "step": "02",
+            "title": "Protected View",
+            "status": "Masking map ready",
+            "headline": "PII/PHI masking is staged for reviewer-safe circulation without losing source traceability.",
+            "summary": "Structured pseudonymisation keeps the source chain intact while removing patient, investigator, date, and site identifiers from working views.",
+            "document_type": sample_case["documents"]["sae"]["type"],
+            "document_name": sample_case["documents"]["sae"]["name"],
+            "pii_masked": f"{protected_count} entities staged",
+            "seriousness_score": "88 / 100",
+            "packet_readiness": "Protected view token map ready",
+            "latest_action": "One low-confidence date token remains for reviewer approval",
+            "metrics": [
+                {"label": "PII entities", "value": str(protected_count), "detail": "Patient, investigator, date, and site tokens detected from the SAE narrative."},
+                {"label": "Low confidence", "value": "1", "detail": "A discharge-date entity is intentionally held for reviewer confirmation."},
+                {"label": "Audit trace", "value": "100%", "detail": "Every replacement token remains source-linked for later inspection."},
+            ],
+            "input": "Narrative text passes through entity detection, category filters, and reversible tokenisation.",
+            "output": "Protected reviewer-safe document view with entity map and approval queue.",
+            "gate": "Reviewer approves or escalates low-confidence masking before downstream use.",
+        },
+        {
+            "key": "Triage",
+            "step": "03",
+            "title": "Triage",
+            "status": "Safety severity elevated",
+            "headline": "Safety triage is surfacing seriousness, causality, and duplicate risk before review packet assembly.",
+            "summary": "The SAE lane scores seriousness, likely causality, and session duplicates so urgent cases surface with the right operational weight.",
+            "document_type": sample_case["documents"]["sae"]["type"],
+            "document_name": sample_case["documents"]["sae"]["name"],
+            "pii_masked": f"{protected_count} entities protected",
+            "seriousness_score": "92 / 100",
+            "packet_readiness": "Hospitalisation lane active",
+            "latest_action": "Causality remains marked as Possibly Related",
+            "metrics": [
+                {"label": "Seriousness", "value": "High", "detail": "ICU admission and hospitalisation push this case into urgent review."},
+                {"label": "Duplicate scan", "value": "Clean", "detail": "No session-level duplicate found against the current review queue."},
+                {"label": "Missing info", "value": str(missing_count), "detail": "Open follow-up items remain visible before packet confirmation."},
+            ],
+            "input": "Protected narrative plus event timeline and causality cues flow into the safety engine.",
+            "output": "Severity grade, reviewer-facing event synopsis, and duplicate recommendation.",
+            "gate": "Reviewer decides whether to confirm the safety lane or escalate low-confidence cues.",
+        },
+        {
+            "key": "Validation",
+            "step": "04",
+            "title": "Validation",
+            "status": "Completeness variance open",
+            "headline": "Submission validation is checking mandatory CT fields and routing exceptions before formal review.",
+            "summary": "Mandatory clinical trial application fields are assessed with deterministic gaps surfaced as reviewer-visible validation signals.",
+            "document_type": sample_case["documents"]["submission"]["type"],
+            "document_name": sample_case["documents"]["submission"]["name"],
+            "pii_masked": "Not applicable",
+            "seriousness_score": "63 / 100",
+            "packet_readiness": "19 of 20 mapped",
+            "latest_action": "Form CT-04 signatory remains flagged for confirmation",
+            "metrics": [
+                {"label": "Required fields", "value": "19 / 20", "detail": "Administrative and safety sections are largely complete for reviewer validation."},
+                {"label": "Blocking gaps", "value": "1", "detail": "A signatory mismatch remains queued as the main validation hold."},
+                {"label": "Source links", "value": "Ready", "detail": "Every field can be traced back to the original submission text."},
+            ],
+            "input": "Submission sections, CT forms, and safety references are compared against required field maps.",
+            "output": "RAG-style completeness status and reviewer-facing validation exceptions.",
+            "gate": "Reviewer confirms whether the packet can proceed or should be returned for correction.",
+        },
+        {
+            "key": "Compare",
+            "step": "05",
+            "title": "Compare",
+            "status": "Amendment deltas indexed",
+            "headline": "Version comparison is isolating substantive protocol changes from administrative edits.",
+            "summary": "The compare engine lifts protocol amendments into structured deltas so reviewers can focus on the changes that affect risk, endpoints, and consent.",
+            "document_type": sample_case["documents"]["amendment"]["type"],
+            "document_name": sample_case["documents"]["amendment"]["name"],
+            "pii_masked": "Not required for protocol diff",
+            "seriousness_score": "71 / 100",
+            "packet_readiness": f"{compare_count} key deltas indexed",
+            "latest_action": "Endpoint extension has been elevated as substantive",
+            "metrics": [
+                {"label": "Tracked changes", "value": str(compare_count), "detail": "Eligibility, endpoint window, and consent language are isolated with impact notes."},
+                {"label": "Substantive", "value": "2", "detail": "Two amendment lines materially affect safety or analysis planning."},
+                {"label": "Administrative", "value": "1", "detail": "Language localisation is retained but does not block progression."},
+            ],
+            "input": "Base protocol and amendment text are aligned semantically and structurally.",
+            "output": "Source-linked change log with substantive vs administrative classification.",
+            "gate": "Reviewer confirms whether the amendment can proceed without further clarification.",
+        },
+        {
+            "key": "Audit Packet",
+            "step": "06",
+            "title": "Audit Packet",
+            "status": "Review chain exportable",
+            "headline": "Audit packet generation is keeping every AI output tied to the reviewer decision trail.",
+            "summary": "Each module contributes source-linked outputs and explicit reviewer actions so the packet is inspection-ready when required.",
+            "document_type": "Cross-packet review bundle",
+            "document_name": sample_case["packet_id"],
+            "pii_masked": f"{protected_count} entity actions logged",
+            "seriousness_score": "83 / 100",
+            "packet_readiness": "Audit trail ready on demand",
+            "latest_action": "Decision chain remains anchored to source-linked evidence",
+            "metrics": [
+                {"label": "Audit chain", "value": "Live", "detail": "Reviewer actions, AI outputs, and source references remain chronologically linked."},
+                {"label": "Packet export", "value": "Ready", "detail": "Structured audit packet can be generated once review decisions are confirmed."},
+                {"label": "Escalation record", "value": "Tracked", "detail": "Low-confidence events remain visible in the final packet narrative."},
+            ],
+            "input": "Validated outputs from intake, protection, safety, validation, and comparison are consolidated.",
+            "output": "Inspection-ready review packet with reviewer decisions and source-linked evidence.",
+            "gate": "Authorised reviewer remains the final decision authority before packet issuance.",
+        },
+    ]
+    stage_lookup = {stage["key"]: stage for stage in workflow_stages}
+    selected_stage = stage_lookup.get(st.session_state["landing_stage"], workflow_stages[0])
 
-            # ── Header: Nirnay logo + subtitle ──────────────────────────────
-            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:nowrap;">'
-            '<div style="width:36px;height:36px;border-radius:9px;background-color:#FF9933;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>'
-            '</div>'
-            '<span style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.5px;white-space:nowrap;">Nirnay</span>'
-            '<span style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:2px 10px;white-space:nowrap;">Health Innovation Acceleration</span>'
-            '</div>'
+    capability_cards = [
+        {
+            "key": "anon",
+            "label": "01 · Privacy",
+            "title": "Anonymisation",
+            "signal": f"{protected_count} entities detected · reviewer approval queue live",
+            "summary": "Two-step masking keeps operational review moving without losing source-level reversibility.",
+            "bullets": [
+                "Category-aware filters separate patient, investigator, site, and date handling.",
+                "Low-confidence entities remain reviewer visible instead of being auto-suppressed.",
+                "Protected views stay source-linked for future audit reconstruction.",
+            ],
+            "stage": "Protected View",
+        },
+        {
+            "key": "sum",
+            "label": "02 · Intelligence",
+            "title": "Summarisation",
+            "signal": "SAE, checklist, and meeting modes available from the same console",
+            "summary": "Narratives are compressed into review-ready summaries with explicit prompts for reviewer follow-up.",
+            "bullets": [
+                "Structured synopsis keeps key signals and reviewer prompts visible together.",
+                "SAE summarisation preserves seriousness, causality, and outcome fields.",
+                "Checklist and meeting lanes keep source modes aligned instead of splitting tools.",
+            ],
+            "stage": "Triage",
+        },
+        {
+            "key": "complete",
+            "label": "03 · Validation",
+            "title": "Completeness Check",
+            "signal": "20 required CT fields tracked with deterministic validation notes",
+            "summary": "Submission quality is framed as operational readiness instead of a passive checklist.",
+            "bullets": [
+                "Mandatory field validation is tied directly to source evidence.",
+                "Reviewer-return vs proceed decisions stay visible alongside the gap summary.",
+                "Validation variance is explicit before the packet moves downstream.",
+            ],
+            "stage": "Validation",
+        },
+        {
+            "key": "triage",
+            "label": "04 · Triage",
+            "title": "Categorisation & Safety",
+            "signal": "Hospitalisation signal elevated · duplicate scan running in-session",
+            "summary": "Safety triage puts severity, seriousness, and duplicate risk into one reviewer-facing lane.",
+            "bullets": [
+                "Severity grading and causality remain visible with the active case context.",
+                "Duplicate detection is session-aware and does not rely on generic heuristics.",
+                "Reviewer escalation is a first-class output, not an afterthought.",
+            ],
+            "stage": "Triage",
+        },
+        {
+            "key": "compare",
+            "label": "05 · Diff Engine",
+            "title": "Version Compare",
+            "signal": f"{compare_count} amendment deltas mapped with impact annotations",
+            "summary": "Protocol change review is focused on the few changes that materially affect the case.",
+            "bullets": [
+                "Substantive vs administrative splits are source-linked and explainable.",
+                "Endpoint, eligibility, and consent changes remain review-ready in one pane.",
+                "Reviewer packets can be assembled without manually rebuilding the amendment story.",
+            ],
+            "stage": "Compare",
+        },
+        {
+            "key": "audit",
+            "label": "06 · Audit",
+            "title": "Audit Packet",
+            "signal": "Source-linked decision chain preserved across all workflow stages",
+            "summary": "Audit readiness is designed into the workflow instead of appended at the end.",
+            "bullets": [
+                "All reviewer actions stay attached to timestamps, confidence, and source references.",
+                "Low-confidence events are retained in the packet instead of being flattened out.",
+                "Inspection-ready exports remain structured for downstream scrutiny.",
+            ],
+            "stage": "Audit Packet",
+        },
+    ]
+    trust_items = {
+        "Reviewer remains in control": {
+            "title": "Reviewer remains in control",
+            "copy": "No AI output is final by itself. Each stage is framed as a reviewer decision gate with explicit confirm, return, or escalate paths.",
+            "signal": "Final judgement never auto-advances without an authorised reviewer action.",
+        },
+        "Source-linked outputs": {
+            "title": "Source-linked outputs",
+            "copy": "Operational summaries, comparisons, and safety packets stay tied to underlying packet text so reviewers can trace every assertion.",
+            "signal": "Evidence remains inspectable instead of being reduced to opaque model prose.",
+        },
+        "Low-confidence escalation": {
+            "title": "Low-confidence escalation",
+            "copy": "Ambiguous masking, incomplete fields, and safety uncertainty are surfaced as visible reviewer tasks rather than hidden system failures.",
+            "signal": "Confidence thresholds produce escalation events instead of silent automation.",
+        },
+        "Audit-ready logging": {
+            "title": "Audit-ready logging",
+            "copy": "Each reviewer action, packet mutation, and AI output is retained in sequence so the command chain is reconstructable during inspection.",
+            "signal": "The system keeps a usable audit narrative, not just raw event exhaust.",
+        },
+    }
 
-            '<div style="width:32px;height:2px;background-color:#FF9933;border-radius:2px;margin-bottom:20px;"></div>'
+    selected_stage = stage_lookup.get(st.session_state["landing_stage"], workflow_stages[0])
+    if st.session_state["landing_show_workflow"]:
+        stage_copy = f"{selected_stage['summary']} {selected_stage['status']}."
+    else:
+        stage_copy = selected_stage["summary"]
 
-            '<div style="font-size:20px;font-weight:700;color:white;line-height:1.35;margin-bottom:8px;">'
-            'Regulatory review,<br><span style="color:#FF9933;">reimagined for India.</span>'
-            '</div>'
-
-            '<div style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.45);line-height:1.7;margin-bottom:24px;">'
-            'All 6 CDSCO-mandated AI features in one platform.<br>Upload real documents — structured outputs in seconds.'
-            '</div>'
-
-            # ── Feature cards grid — auto-fit so cards never push login panel off-canvas ──
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;flex:1;">'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #3b82f6;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">01 &middot; Privacy</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Anonymisation</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">DPDP Act 2023 &middot; two-step PII removal</div>'
-            '</div>'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #10b981;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#34d399;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">02 &middot; Intelligence</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Summarisation</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">SAE &middot; checklists &middot; meeting audio</div>'
-            '</div>'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #8b5cf6;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">03 &middot; Validation</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Completeness Check</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">20 mandatory fields &middot; RAG flagging</div>'
-            '</div>'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #f59e0b;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#fbbf24;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">04 &middot; Triage</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Classification</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">SAE severity &middot; duplicate detection</div>'
-            '</div>'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #0ea5e9;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#38bdf8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">05 &middot; Diff Engine</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Version Compare</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">Semantic + structural dossier diff</div>'
-            '</div>'
-
-            '<div style="background-color:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:2px solid #ec4899;border-radius:10px;padding:14px;overflow-wrap:break-word;word-wrap:break-word;">'
-            '<div style="font-size:11px;font-weight:700;color:#f472b6;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">06 &middot; Generation</div>'
-            '<div style="font-size:13px;font-weight:700;color:white;margin-bottom:4px;">Inspection Report</div>'
-            '<div style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);line-height:1.5;overflow-wrap:break-word;">Typed / audio &#8594; CDSCO GCP report</div>'
-            '</div>'
-
-            '</div>'
-
-            '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07);">'
-            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; DPDP Act 2023</span>'
-            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; NDCT Rules 2019</span>'
-            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; ICMR GCP</span>'
-            '<span style="font-size:11px;font-weight:600;color:#4ade80;background-color:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:20px;padding:3px 10px;">&#10003; MeitY AI Ethics</span>'
-            '</div>'
-
-            '</div>',
-            unsafe_allow_html=True,
-        )
-
-    # ── RIGHT COLUMN — st.form only, zero unclosed HTML ───────────────────────
-    with _rcol:
-        # IndiaAI + CDSCO badge — single line
-        st.markdown("""
-<div style="font-family:'Inter',sans-serif;">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:36px;flex-wrap:nowrap;">
-    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;font-size:9px;font-weight:800;color:rgba(255,255,255,0.6);letter-spacing:.06em;text-align:center;line-height:1.4;flex-shrink:0;">India<br>AI</div>
-    <div style="width:1px;height:20px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
-    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;font-size:9px;font-weight:800;color:rgba(255,255,255,0.6);letter-spacing:.06em;text-align:center;line-height:1.4;flex-shrink:0;">CD<br>SCO</div>
-    <div style="flex:1;">
-      <div style="font-size:10px;font-weight:700;color:rgba(255,153,51,0.9);letter-spacing:.04em;">Health Innovation Acceleration</div>
-      <div style="font-size:10px;color:rgba(255,255,255,0.3);">Hackathon 2026 · Stage 1</div>
+    st.markdown('<div class="landing-shell">', unsafe_allow_html=True)
+    st.markdown(f"""
+<div class="landing-topbar">
+  <div class="landing-brand-stack">
+    <div class="landing-brand">
+      <img src="{HINDI_LOGO_DATA_URI}" alt="Nirnay Hindi logo">
+    </div>
+    <div class="landing-markers">
+      <span class="landing-marker">IndiaAI</span>
+      <span class="landing-marker">CDSCO</span>
+      <span class="landing-marker">Stage 1</span>
     </div>
   </div>
-  <div style="width:32px;height:3px;background:linear-gradient(90deg,#FF9933,rgba(255,153,51,0.2));border-radius:2px;margin-bottom:16px;"></div>
-  <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Authorised access only</div>
-  <div style="font-size:26px;font-weight:800;color:white;margin-bottom:28px;letter-spacing:-0.5px;">Welcome back</div>
+</div>
+""", unsafe_allow_html=True)
+
+    hero_left, hero_right = st.columns([1.7, 0.9], gap="large")
+    with hero_left:
+        st.markdown("""
+<div class="hero-card">
+  <div class="hero-kicker">Regulatory review operations</div>
+  <h1 class="hero-title">Calm, source-linked CDSCO review from intake to audit packet.</h1>
+  <div class="hero-sub">Nirnay keeps the reviewer in control while the system organises intake, protected handling, safety triage, validation, comparison, and audit-ready outputs.</div>
+</div>
+""", unsafe_allow_html=True)
+    with hero_right:
+        st.markdown("""
+<div class="access-card">
+  <div class="access-title">Authorised reviewer sign-in</div>
+  <div class="access-copy">Use your reviewer credentials to open the live CDSCO review workspace.</div>
 </div>
 """, unsafe_allow_html=True)
 
         with st.form("login_form", clear_on_submit=False):
             _uname = st.text_input("Username", placeholder="Username", key="login_uname")
-            _pwd   = st.text_input("Password", placeholder="Password",
-                                   type="password", key="login_pwd")
+            _pwd = st.text_input("Password", placeholder="Password", type="password", key="login_pwd")
             if st.session_state["_login_failed"]:
-                st.markdown('<p style="color:#f87171;font-size:11px;margin:2px 0 6px;">⚠ Invalid credentials. Please try again.</p>',
-                            unsafe_allow_html=True)
+                st.markdown(
+                    '<p style="color:#c2410c;font-size:12px;margin:2px 0 8px;">Invalid credentials. Review the access details and try again.</p>',
+                    unsafe_allow_html=True,
+                )
             _submitted = st.form_submit_button("Sign in →", use_container_width=True)
+        st.caption("Authorised CDSCO personnel only. Sessions remain logged for compliance and audit review.")
 
-        st.markdown("""
-<div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
-  <div style="font-size:10px;color:rgba(255,255,255,0.22);line-height:1.8;text-align:center;">
-    Authorised CDSCO personnel only · All sessions are logged for compliance<br>
-    <span style="color:rgba(255,153,51,0.45);font-weight:600;">Nirnay © 2026 · IndiaAI / CDSCO Hackathon</span>
+    if _submitted:
+        if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
+            set_screen("Command Dashboard")
+            st.session_state["logged_in"] = True
+            st.session_state["_login_failed"] = False
+            st.rerun()
+        st.session_state["_login_failed"] = True
+        st.rerun()
+
+    st.markdown('<div class="workflow-strip-title">Workflow</div>', unsafe_allow_html=True)
+    selected_key = st.radio(
+        "Workflow",
+        options=[stage["key"] for stage in workflow_stages],
+        index=[stage["key"] for stage in workflow_stages].index(st.session_state["landing_stage"]),
+        horizontal=True,
+        label_visibility="collapsed",
+        key="landing_stage_selector",
+    )
+    if selected_key != st.session_state["landing_stage"]:
+        st.session_state["landing_stage"] = selected_key
+        selected_stage = stage_lookup[selected_key]
+        stage_copy = f"{selected_stage['summary']} {selected_stage['status']}." if st.session_state["landing_show_workflow"] else selected_stage["summary"]
+
+    st.markdown(f"""
+<div class="stage-panel">
+  <div class="stage-panel-head">
+    <div>
+      <div class="stage-name">{selected_stage["title"]}</div>
+      <div class="stage-copy">{selected_stage["headline"]} {stage_copy}</div>
+    </div>
+    <div class="stage-accent">{selected_stage["status"]}</div>
+  </div>
+  <div class="stage-signal-grid">
+    <div class="stage-signal">
+      <div class="stage-signal-label">Current input</div>
+      <div class="stage-signal-value">{selected_stage["input"]}</div>
+    </div>
+    <div class="stage-signal">
+      <div class="stage-signal-label">Live output</div>
+      <div class="stage-signal-value">{selected_stage["output"]}</div>
+    </div>
+    <div class="stage-signal">
+      <div class="stage-signal-label">Reviewer gate</div>
+      <div class="stage-signal-value">{selected_stage["gate"]}</div>
+    </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
+    stage_cta = st.button(f"Open {selected_stage['title']} in Demo", key="landing_stage_cta", use_container_width=False)
 
-        if _submitted:
-            if _uname.strip() == VALID_USER and _pwd == VALID_PASS:
-                st.session_state["logged_in"]     = True
-                st.session_state["_login_failed"] = False
-                st.rerun()
-            else:
-                st.session_state["_login_failed"] = True
-                st.rerun()
+    st.markdown(f'<div class="landing-footer">{APP_DISCLAIMER}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if stage_cta:
+        apply_landing_stage_route(selected_stage["key"])
+        st.session_state["logged_in"] = True
+        st.session_state["_login_failed"] = False
+        st.rerun()
 
     st.stop()
 
@@ -299,6 +1171,52 @@ def go_to_anonymisation() -> None:
     st.session_state.active_tab = 2
     st.session_state.active_ribbon_tab = "🕵️ Anonymisation"
     st.rerun()
+
+
+def get_command_dashboard_snapshot() -> dict:
+    # The dashboard stays on the seeded HBT-17 baseline until Phase 2.
+    # Live intake/uploads should not alter this screen.
+    snapshot = deepcopy(get_case_library()["HBT-17"])
+    snapshot["current_stage"] = "Command Dashboard"
+    snapshot["selected_document_id"] = "submission"
+    snapshot["document_classification"] = {}
+    snapshot["structured_synopsis"] = {}
+    snapshot["reviewer_decisions"] = []
+    snapshot["audit_events"] = []
+    snapshot["export_readiness"] = {
+        "classification": False,
+        "protected_view": False,
+        "sae_packet": False,
+        "compare_packet": False,
+        "audit_packet": False,
+    }
+    snapshot["protected_view"]["validated"] = False
+    snapshot["protected_view"]["validation_summary"] = ""
+    snapshot["protected_view"]["escalation_status"] = "Not validated"
+    snapshot["sae_review"]["review_packet"] = ""
+    snapshot["compare_review"]["review_packet"] = ""
+    return snapshot
+
+
+def render_quick_redirects() -> None:
+    current_screen = st.session_state.get("screen", SCREENS[0])
+    quick_links = [
+        ("quick_dashboard", "Dashboard", "Command Dashboard"),
+        ("quick_intake", "Document Intake", "Document Intake"),
+        ("quick_anon", "Anonymisation", "Protected View"),
+        ("quick_sae", "SAE Review", "SAE Review"),
+        ("quick_audit", "Audit Trail", "Audit Trail"),
+    ]
+
+    st.caption("Quick redirects")
+    for key, label, screen_name in quick_links:
+        if st.button(
+            label,
+            key=key,
+            use_container_width=True,
+            type="primary" if current_screen == screen_name else "secondary",
+        ):
+            go_to(screen_name)
 
 
 DOCUMENT_UPLOAD_TYPES = [
@@ -763,20 +1681,15 @@ def _render_sae_review_uploader(widget_key: str) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOP BAR
 # ═══════════════════════════════════════════════════════════════════════════════
-_hcol1, _hcol2 = st.columns([10, 1.2])
-with _hcol1:
-    st.markdown("""
-    <div class="logo-container">
-      <div style="width:34px;height:34px;border-radius:9px;background-color:#003087;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
-      </div>
-      <span style="font-size:20px;font-weight:800;color:#0a2240;letter-spacing:-0.5px;">Nirnay</span>
-      <span style="font-size:12px;color:#9ca3af;border-left:1px solid #e5e7eb;padding-left:14px;margin-left:2px;">CDSCO AI Review Platform</span>
-      <span style="font-size:10px;font-weight:700;color:#f97316;background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:3px 11px;margin-left:4px;">IndiaAI Hackathon 2026</span>
+_brand_col, _signout_col = st.columns([12, 1.2])
+with _brand_col:
+    st.markdown(f"""
+    <div class="top-brand-shell">
+      <img src="{HINDI_LOGO_DATA_URI}" alt="Nirnay Hindi logo" class="top-brand-logo-hi">
     </div>
     """, unsafe_allow_html=True)
 
-with _hcol2:
+with _signout_col:
     if st.button("Sign out", key="signout"):
         st.session_state["logged_in"] = False
         st.query_params.clear()
@@ -1419,40 +2332,44 @@ if True:  # scope block — functions promoted to module level via exec pattern
     case = get_active_case()
 
     def command_dashboard() -> None:
-        case["current_stage"] = "Command Dashboard"
-        save_active_case(case)
+        active_case = get_active_case()
+        active_case["current_stage"] = "Command Dashboard"
+        save_active_case(active_case)
+        dashboard_case = get_command_dashboard_snapshot()
+        selected_doc = dashboard_case["documents"][dashboard_case["selected_document_id"]]
         render_metrics()
-        render_case_header(case)
+        render_case_header(dashboard_case)
         sc1,sc2,sc3 = st.columns(3)
         with sc1:
-            st.metric("Selected document", case["documents"][case["selected_document_id"]]["type"])
-            st.metric("Reviewer confirmations", len(case["reviewer_decisions"]))
+            st.metric("Selected document", selected_doc["type"])
+            st.metric("Reviewer confirmations", len(dashboard_case["reviewer_decisions"]))
         with sc2:
-            st.metric("Protected-view status", "Validated" if case["protected_view"]["validated"] else "Pending")
-            st.metric("SAE packet", "Ready" if case["sae_review"]["review_packet"] else "Pending")
+            st.metric("Protected-view status", "Validated" if dashboard_case["protected_view"]["validated"] else "Pending")
+            st.metric("SAE packet", "Ready" if dashboard_case["sae_review"]["review_packet"] else "Pending")
         with sc3:
-            st.metric("Compare packet", "Ready" if case["compare_review"]["review_packet"] else "Pending")
-            st.metric("Audit packet", "Ready" if case["export_readiness"]["audit_packet"] else "Pending")
+            st.metric("Compare packet", "Ready" if dashboard_case["compare_review"]["review_packet"] else "Pending")
+            st.metric("Audit packet", "Ready" if dashboard_case["export_readiness"]["audit_packet"] else "Pending")
+        st.caption("Live Integration coming in Phase 2")
         st.caption("Dashboard → Document Intake → Protected View → SAE Review → Version Compare → Audit Trail")
         ac1,ac2,ac3 = st.columns(3)
         with ac1:
             if st.button("Open Document Intake", use_container_width=True):
-                add_audit_event("Command Dashboard","Workflow routed",1.0,"Opened Document Intake","Completed",case["packet_id"],""); go_to("Document Intake")
+                add_audit_event("Command Dashboard","Workflow routed",1.0,"Opened Document Intake","Completed",active_case["packet_id"],""); go_to("Document Intake")
         with ac2:
             if st.button("Jump to SAE Review", use_container_width=True):
-                add_audit_event("Command Dashboard","Workflow routed",1.0,"Opened SAE Review","Completed",case["packet_id"],""); go_to("SAE Review")
+                add_audit_event("Command Dashboard","Workflow routed",1.0,"Opened SAE Review","Completed",active_case["packet_id"],""); go_to("SAE Review")
         with ac3:
             if st.button("Open Audit Trail", use_container_width=True): go_to("Audit Trail")
         st.markdown("### Source packet overview")
         dc1,dc2,dc3 = st.columns(3)
-        for idx, doc in enumerate(case["documents"].values()):
+        for idx, doc in enumerate(dashboard_case["documents"].values()):
             with [dc1,dc2,dc3][idx % 3]:
                 with st.container(border=True):
                     st.write(f"**{doc['name']}**"); st.write(f"Type: {doc['type']}")
                     st.write(f"Source: {doc['source']}"); st.write(f"Risk: {doc['risk_level']}")
                     st.caption(doc["preview"])
 
-    def document_intake() -> None:
+    def document_intake(widget_scope: str = "main") -> None:
         active_case = get_active_case()
         active_case["current_stage"] = "Document Intake"; save_active_case(active_case)
         
@@ -1466,7 +2383,7 @@ if True:  # scope block — functions promoted to module level via exec pattern
                                 options=doc_ids,
                                 index=doc_ids.index(active_case["selected_document_id"]) if active_case["selected_document_id"] in doc_ids else 0,
                                 format_func=lambda d: "📂 Browse files to upload (Limit 200 MB per file)" if d == "__upload__" else (active_case["documents"][d]["name"] if d else ""),
-                                key="di_selectbox_main")
+                                key=f"di_selectbox_{widget_scope}")
         
         if selected == "__upload__":
             selected = _render_document_intake_uploader("workflow_doc_upload")
@@ -1486,12 +2403,12 @@ if True:  # scope block — functions promoted to module level via exec pattern
         st.markdown("### Intake controls")
         ic1,ic3,ic4 = st.columns([1,1,1]) # Removed ic2 for Confirm action
         with ic1:
-            if st.button("Run Categorisation", use_container_width=True): run_categorisation(); st.success("Categorisation recorded.")
+            if st.button("Run Categorisation", key=f"di_run_categorisation_{widget_scope}", use_container_width=True): run_categorisation(); st.success("Categorisation recorded.")
         with ic3:
-            if st.button("Escalate low-confidence", use_container_width=True):
+            if st.button("Escalate low-confidence", key=f"di_escalate_{widget_scope}", use_container_width=True):
                 confirm_reviewer_action("Document Intake","Escalated",sel_doc.get("classification",{}).get("escalation_recommendation","Escalation requested."),sel_doc["name"],confidence=sel_doc["confidence"],final_status="Escalated"); st.warning("Escalation recorded.")
         with ic4:
-            if st.button("→ Anonymisation", use_container_width=True): go_to_anonymisation()
+            if st.button("→ Anonymisation", key=f"di_to_anonymisation_{widget_scope}", use_container_width=True): go_to_anonymisation()
             
         dt1, dt2, dt3 = st.tabs(["Categorisation","Synopsis","Source"])
         with dt1:
@@ -1684,7 +2601,7 @@ if True:  # scope block — functions promoted to module level via exec pattern
     # Route map — defined at module level (if True: doesn't create a new scope)
     WORKFLOW_ROUTES = {
         "Command Dashboard": command_dashboard,
-        "Document Intake":   document_intake,
+        "Document Intake":   lambda: document_intake("workflow"),
         "Protected View":    protected_view_screen,
         "SAE Review":        sae_review_screen,
         "Version Compare":   version_compare_screen,
@@ -1694,16 +2611,20 @@ if True:  # scope block — functions promoted to module level via exec pattern
 # Render the selected workflow screen inside the Command Dashboard ribbon tab
 with t_cmd_dash:
     render_banner("CDSCO Review Workflow", "Full reviewer pipeline: intake → protected view → SAE review → version compare → audit trail.")
-    WORKFLOW_ROUTES[screen]()
-    if screen in ("Protected View", "SAE Review", "Version Compare"):
+    workflow_screen = screen
+    if screen in ("Document Intake", "SAE Review", "Audit Trail"):
+        # These screens already render in dedicated tabs below; avoid duplicate widget trees.
+        workflow_screen = "Command Dashboard"
+    WORKFLOW_ROUTES[workflow_screen]()
+    if workflow_screen in ("Protected View", "SAE Review", "Version Compare"):
         _doc_ref = case["documents"].get(case.get("selected_document_id", ""), {}).get("name", case["packet_id"])
-        _global_action_buttons(screen, _doc_ref)
+        _global_action_buttons(workflow_screen, _doc_ref)
 
 # ── New ribbon tabs: Document Intake, SAE Review, Audit Trail ─────────────
 
 with t_doc_intake:
     render_banner("Document Intake", "Select and categorise the incoming case packet document before routing to review.")
-    document_intake()
+    document_intake("tab")
 
 with t_sae_review:
 
