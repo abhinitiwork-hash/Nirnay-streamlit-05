@@ -63,7 +63,7 @@ from components import (
     render_case_header,
     render_metrics,
     render_top_nav,
-    run_classification,
+    run_categorisation,
     save_active_case,
     set_screen,
     to_csv_bytes,
@@ -558,6 +558,11 @@ def _render_document_intake_uploader(widget_key: str) -> None:
     st.markdown('<div class="upload-card"><h4>📁 Upload your document</h4>', unsafe_allow_html=True)
     intake_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key=widget_key)
     if intake_file:
+        # Enforce 200MB limit (200 * 1024 * 1024 bytes)
+        if intake_file.size > 200 * 1024 * 1024:
+            st.error("File size exceeds 200 MB limit. Please select a smaller file.")
+            return
+
         doc_id, err = _ingest_document_intake_upload(intake_file)
         if err:
             st.error(f"Extraction error: {err}")
@@ -748,28 +753,29 @@ def _render_sae_review_uploader(widget_key: str) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TOP BAR
 # ═══════════════════════════════════════════════════════════════════════════════
-st.markdown("""
-<div style="background-color:white;border-radius:12px;padding:14px 22px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1px solid #e2e8f0;display:flex;align-items:center;gap:14px;">
-  <div style="width:34px;height:34px;border-radius:9px;background-color:#003087;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
-  </div>
-  <span style="font-size:20px;font-weight:800;color:#0a2240;letter-spacing:-0.5px;">Nirnay</span>
-  <span style="font-size:12px;color:#9ca3af;border-left:1px solid #e5e7eb;padding-left:14px;margin-left:2px;">CDSCO AI Review Platform</span>
-  <span style="font-size:10px;font-weight:700;color:#f97316;background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:3px 11px;margin-left:4px;">IndiaAI Hackathon 2026</span>
-</div>
-""", unsafe_allow_html=True)
+_hcol1, _hcol2 = st.columns([10, 1.2])
+with _hcol1:
+    st.markdown("""
+    <div class="logo-container">
+      <div style="width:34px;height:34px;border-radius:9px;background-color:#003087;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-size:20px;font-weight:800;color:#0a2240;letter-spacing:-0.5px;">Nirnay</span>
+      <span style="font-size:12px;color:#9ca3af;border-left:1px solid #e5e7eb;padding-left:14px;margin-left:2px;">CDSCO AI Review Platform</span>
+      <span style="font-size:10px;font-weight:700;color:#f97316;background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:3px 11px;margin-left:4px;">IndiaAI Hackathon 2026</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with _hcol2:
+    if st.button("Sign out", key="signout"):
+        st.session_state["logged_in"] = False
+        st.query_params.clear()
+        st.rerun()
 
 
 # ── Always-visible nav bar: case selector + workflow breadcrumb ───────────────
 screen = render_top_nav()
 
-# Sign-out (tucked right, below nav bar)
-_so_col1, _so_col2 = st.columns([11, 1])
-with _so_col2:
-    if st.button("Sign out", key="signout"):
-        st.session_state["logged_in"] = False
-        st.query_params.clear()
-        st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN TABS — Features + Workflow
@@ -778,13 +784,13 @@ with _so_col2:
  t_audit_trail) = st.tabs([
     "🖥️ Command Dashboard",
     "📥 Document Intake",
-    "🔒 Protected View",
+    "🕵️ Anonymisation",
     "📄 Summarisation",
-    "✅ Completeness Check",
-    "🏷️ Classification",
-    "🔍 Version Compare",
-    "🚨 SAE Review",
-    "📑 Audit Trail",
+    "✅ Completeness",
+    "🏷️ Categorisation",
+    "🔄 Version Compare",
+    "🏥 SAE Review",
+    "📜 Audit Trail",
 ])
 
 # ── Tab-jump JS helper ────────────────────────────────────────────────────────
@@ -1144,14 +1150,14 @@ with t_comp:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — CLASSIFICATION
+# TAB 4 — CATEGORISATION
 # ═══════════════════════════════════════════════════════════════════════════════
 with t_cls:
-    render_banner("Classification", "SAE severity grading · ICD-10 mapping · Session-based duplicate detection")
+    render_banner("Categorisation", "SAE severity grading · ICD-10 mapping · Session-based duplicate detection")
     st.markdown("""
 <div class="sec-hd">
   <div class="sec-ic ic-amber">🏷️</div>
-  <div><h2>SAE Classification &amp; Duplicate Detection</h2>
+  <div><h2>SAE Categorisation &amp; Duplicate Detection</h2>
   <p>DEATH · DISABILITY · HOSPITALISATION · OTHERS · ICD-10 mapping · Session-based duplicate detection</p></div>
 </div>
 """, unsafe_allow_html=True)
@@ -1192,7 +1198,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
             st.session_state["dup_files"] = {}; st.rerun()
 
     c1, _, _ = st.columns([1,1,3])
-    with c1: run_cls = st.button("🏷️ Classify & Check Duplicates", type="primary", use_container_width=True)
+    with c1: run_cls = st.button("🏷️ Categorise & Check Duplicates", type="primary", use_container_width=True)
 
     if run_cls:
         content = st.session_state["class_text"].strip()
@@ -1400,6 +1406,7 @@ if False:  # Inspection Report tab removed from ribbon
 # REVIEW WORKFLOW — routing logic; functions defined here, called from ribbon tabs
 # ═══════════════════════════════════════════════════════════════════════════════
 if True:  # scope block — functions promoted to module level via exec pattern
+    case = get_active_case()
 
     def command_dashboard() -> None:
         case["current_stage"] = "Command Dashboard"
@@ -1438,38 +1445,52 @@ if True:  # scope block — functions promoted to module level via exec pattern
     def document_intake() -> None:
         active_case = get_active_case()
         active_case["current_stage"] = "Document Intake"; save_active_case(active_case)
-        _render_document_intake_uploader("workflow_doc_upload")
-        active_case = get_active_case()
-        doc_ids  = list(active_case["documents"].keys())
-        selected = st.selectbox("Case packet document", options=doc_ids,
-                                index=doc_ids.index(active_case["selected_document_id"]),
-                                format_func=lambda d: active_case["documents"][d]["name"])
+        
+        doc_ids  = [None] + list(active_case["documents"].keys()) + ["__upload__"]
+        
+        # Ensure selected_document_id is None if it's the first time
+        if "selected_document_id" not in active_case:
+             active_case["selected_document_id"] = None
+
+        selected = st.selectbox("Case packet document", 
+                                options=doc_ids,
+                                index=doc_ids.index(active_case["selected_document_id"]) if active_case["selected_document_id"] in doc_ids else 0,
+                                format_func=lambda d: "📂 Browse files to upload (Limit 200 MB per file)" if d == "__upload__" else (active_case["documents"][d]["name"] if d else ""),
+                                key="di_selectbox_main")
+        
+        if selected == "__upload__":
+            _render_document_intake_uploader("workflow_doc_upload")
+            return
+
+        if selected is None:
+            st.info("Please select a document from the dropdown or upload a new one to view details.")
+            return
+
         if selected != active_case["selected_document_id"]:
             active_case["selected_document_id"] = selected; save_active_case(active_case)
             active_case = get_active_case()
+        
         sel_doc = active_case["documents"][active_case["selected_document_id"]]
         st.markdown("### Intake controls")
-        ic1,ic2,ic3,ic4 = st.columns(4)
+        ic1,ic3,ic4 = st.columns([1,1,1]) # Removed ic2 for Confirm action
         with ic1:
-            if st.button("Run classification", use_container_width=True): run_classification(); st.success("Classification recorded.")
-        with ic2:
-            if st.button("Confirm reviewer action", use_container_width=True):
-                confirm_reviewer_action("Document Intake","Reviewer confirmed intake assessment","Classification accepted.",sel_doc["name"],confidence=sel_doc["confidence"]); st.success("Confirmation recorded.")
+            if st.button("Run Categorisation", use_container_width=True): run_categorisation(); st.success("Categorisation recorded.")
         with ic3:
             if st.button("Escalate low-confidence", use_container_width=True):
                 confirm_reviewer_action("Document Intake","Escalated",sel_doc.get("classification",{}).get("escalation_recommendation","Escalation requested."),sel_doc["name"],confidence=sel_doc["confidence"],final_status="Escalated"); st.warning("Escalation recorded.")
         with ic4:
             if st.button("→ Protected View", use_container_width=True): go_to("Protected View")
-        dt1, dt2, dt3 = st.tabs(["Classification","Synopsis","Source"])
+            
+        dt1, dt2, dt3 = st.tabs(["Categorisation","Synopsis","Source"])
         with dt1:
-            clf = case["document_classification"] or sel_doc.get("classification",{})
+            clf = active_case.get("document_classification") or sel_doc.get("classification", {})
             with st.container(border=True):
                 st.write(f"**Probable type:** {clf.get('probable_type','Pending')}"); st.write(f"**Severity:** {clf.get('severity',sel_doc['risk_level'])}")
                 st.write(f"**Duplicate warning:** {clf.get('duplicate_warning','Pending')}"); st.write(f"**Escalation:** {clf.get('escalation_recommendation','Pending')}"); st.write(f"**Confidence:** {int(sel_doc['confidence']*100)}%")
         with dt2:
-            syn = case["structured_synopsis"] or sel_doc.get("synopsis",{})
+            syn = active_case.get("structured_synopsis") or sel_doc.get("synopsis", {})
             with st.container(border=True):
-                st.write(f"**Headline:** {syn.get('headline','Pending')}"); st.write(syn.get("summary","Run classification to generate synopsis."))
+                st.write(f"**Headline:** {syn.get('headline','Pending')}"); st.write(syn.get("summary","Run Categorisation to generate synopsis."))
                 for sig in syn.get("key_signals",[]): st.write(f"- {sig}")
                 if syn.get("reviewer_prompt"): st.info(syn["reviewer_prompt"])
         with dt3:
@@ -1626,9 +1647,12 @@ if True:  # scope block — functions promoted to module level via exec pattern
         st.markdown("**Reviewer Actions**")
         ga1, ga2, ga3, ga4 = st.columns(4)
         with ga1:
-            if st.button("Confirm Reviewer Action", use_container_width=True, key=f"gab_confirm_{module_label}"):
-                confirm_reviewer_action(module_label, f"Reviewer confirmed {module_label}", "Action confirmed.", doc_name, confidence=confidence)
-                st.success("Confirmed.")
+            if module_label != "Document Intake":
+                if st.button("Confirm Reviewer Action", use_container_width=True, key=f"gab_confirm_{module_label}"):
+                    confirm_reviewer_action(module_label, f"Reviewer confirmed {module_label}", "Action confirmed.", doc_name, confidence=confidence)
+                    st.success("Confirmed.")
+            else:
+                st.info("Intake categorisation pending.")
         with ga2:
             if st.button("Escalate Low-Confidence", use_container_width=True, key=f"gab_escalate_{module_label}"):
                 confirm_reviewer_action(module_label, "Escalated", "Escalated due to low confidence.", doc_name, confidence=confidence, final_status="Escalated")
@@ -1666,45 +1690,11 @@ with t_cmd_dash:
 # ── New ribbon tabs: Document Intake, SAE Review, Audit Trail ─────────────
 
 with t_doc_intake:
-    render_banner("Document Intake", "Select and classify the incoming case packet document before routing to review.")
-    _render_document_intake_uploader("workflow_doc_upload_tab")
-    case2 = get_active_case()
-    doc_ids2  = list(case2["documents"].keys())
-    selected2 = st.selectbox("Case packet document", options=doc_ids2,
-                             index=doc_ids2.index(case2["selected_document_id"]),
-                             format_func=lambda d: case2["documents"][d]["name"],
-                             key="di_tab_selectbox")
-    if selected2 != case2["selected_document_id"]:
-        case2["selected_document_id"] = selected2; save_active_case(case2)
-    sel_doc2 = case2["documents"][case2["selected_document_id"]]
-    st.markdown("### Intake controls")
-    dti1, dti2, dti3, dti4 = st.columns(4)
-    with dti1:
-        if st.button("Run classification", use_container_width=True, key="di_tab_cls"): run_classification(); st.success("Classification recorded.")
-    with dti2:
-        if st.button("Confirm reviewer action", use_container_width=True, key="di_tab_confirm"):
-            confirm_reviewer_action("Document Intake","Reviewer confirmed intake assessment","Classification accepted.",sel_doc2["name"],confidence=sel_doc2["confidence"]); st.success("Confirmation recorded.")
-    with dti3:
-        if st.button("Escalate low-confidence", use_container_width=True, key="di_tab_esc"):
-            confirm_reviewer_action("Document Intake","Escalated",sel_doc2.get("classification",{}).get("escalation_recommendation","Escalation requested."),sel_doc2["name"],confidence=sel_doc2["confidence"],final_status="Escalated"); st.warning("Escalation recorded.")
-    with dti4:
-        if st.button("→ Protected View", use_container_width=True, key="di_tab_pv"): go_to("Protected View")
-    dt1b, dt2b, dt3b = st.tabs(["Classification","Synopsis","Source"])
-    with dt1b:
-        clf2 = case2["document_classification"] or sel_doc2.get("classification",{})
-        with st.container(border=True):
-            st.write(f"**Probable type:** {clf2.get('probable_type','Pending')}"); st.write(f"**Severity:** {clf2.get('severity',sel_doc2['risk_level'])}")
-            st.write(f"**Duplicate warning:** {clf2.get('duplicate_warning','Pending')}"); st.write(f"**Escalation:** {clf2.get('escalation_recommendation','Pending')}"); st.write(f"**Confidence:** {int(sel_doc2['confidence']*100)}%")
-    with dt2b:
-        syn2 = case2["structured_synopsis"] or sel_doc2.get("synopsis",{})
-        with st.container(border=True):
-            st.write(f"**Headline:** {syn2.get('headline','Pending')}"); st.write(syn2.get("summary","Run classification to generate synopsis."))
-            for sig2 in syn2.get("key_signals",[]): st.write(f"- {sig2}")
-            if syn2.get("reviewer_prompt"): st.info(syn2["reviewer_prompt"])
-    with dt3b:
-        with st.container(border=True): st.write(sel_doc2["raw_text"])
+    render_banner("Document Intake", "Select and categorise the incoming case packet document before routing to review.")
+    document_intake()
 
 with t_sae_review:
+
     render_banner("SAE Review", "Review SAE classification output, resolve missing information, and confirm or escalate.")
     _render_sae_review_uploader("workflow_sae_upload_tab")
     case3 = get_active_case()
