@@ -294,6 +294,13 @@ def go_to(screen_name: str) -> None:
     st.rerun()
 
 
+def go_to_anonymisation() -> None:
+    st.session_state.screen = "Protected View"
+    st.session_state.active_tab = 2
+    st.session_state.active_ribbon_tab = "🕵️ Anonymisation"
+    st.rerun()
+
+
 DOCUMENT_UPLOAD_TYPES = [
     "docx", "pdf", "txt", "csv", "xlsx", "xls",
     "png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff",
@@ -554,14 +561,14 @@ def _ingest_document_intake_upload(uploaded_file) -> tuple[str | None, str | Non
     return doc_id, None
 
 
-def _render_document_intake_uploader(widget_key: str) -> None:
+def _render_document_intake_uploader(widget_key: str) -> str | None:
     st.markdown('<div class="upload-card"><h4>📁 Upload your document</h4>', unsafe_allow_html=True)
     intake_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key=widget_key)
     if intake_file:
         # Enforce 200MB limit (200 * 1024 * 1024 bytes)
         if intake_file.size > 200 * 1024 * 1024:
             st.error("File size exceeds 200 MB limit. Please select a smaller file.")
-            return
+            return None
 
         doc_id, err = _ingest_document_intake_upload(intake_file)
         if err:
@@ -572,8 +579,11 @@ def _render_document_intake_uploader(widget_key: str) -> None:
             st.success(
                 f"✓ Added **{selected_doc['name']}** to the active case packet and selected it for intake review."
             )
+            st.caption("The processed upload is now displayed below in Intake controls.")
+            return doc_id
     st.caption("Uploaded documents are added to the active case packet and override the sample document you select next.")
     st.markdown('</div>', unsafe_allow_html=True)
+    return None
 
 
 def _find_sentence(text: str, keywords: tuple[str, ...]) -> str | None:
@@ -1459,8 +1469,10 @@ if True:  # scope block — functions promoted to module level via exec pattern
                                 key="di_selectbox_main")
         
         if selected == "__upload__":
-            _render_document_intake_uploader("workflow_doc_upload")
-            return
+            selected = _render_document_intake_uploader("workflow_doc_upload")
+            if not selected:
+                return
+            active_case = get_active_case()
 
         if selected is None:
             st.info("Please select a document from the dropdown or upload a new one to view details.")
@@ -1479,7 +1491,7 @@ if True:  # scope block — functions promoted to module level via exec pattern
             if st.button("Escalate low-confidence", use_container_width=True):
                 confirm_reviewer_action("Document Intake","Escalated",sel_doc.get("classification",{}).get("escalation_recommendation","Escalation requested."),sel_doc["name"],confidence=sel_doc["confidence"],final_status="Escalated"); st.warning("Escalation recorded.")
         with ic4:
-            if st.button("→ Protected View", use_container_width=True): go_to("Protected View")
+            if st.button("→ Anonymisation", use_container_width=True): go_to_anonymisation()
             
         dt1, dt2, dt3 = st.tabs(["Categorisation","Synopsis","Source"])
         with dt1:
