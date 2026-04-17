@@ -34,7 +34,9 @@ ARCHITECTURE:
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json as _json
+import re
 
 import pandas as pd
 import streamlit as st
@@ -60,7 +62,6 @@ from components import (
     render_banner,
     render_case_header,
     render_metrics,
-    render_sidebar,
     render_top_nav,
     run_classification,
     save_active_case,
@@ -285,13 +286,404 @@ footer{display:none!important;}
     st.stop()
 
 # ── Past login gate ───────────────────────────────────────────────────────────
-render_sidebar()
 case = get_active_case()
 
 
 def go_to(screen_name: str) -> None:
     set_screen(screen_name)
     st.rerun()
+
+
+DOCUMENT_UPLOAD_TYPES = [
+    "docx", "pdf", "txt", "csv", "xlsx", "xls",
+    "png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff",
+]
+DOCUMENT_UPLOAD_LABEL = "Word / PDF / TXT / CSV / Excel / Image"
+AUDIO_UPLOAD_TYPES = DOCUMENT_UPLOAD_TYPES + ["mp3", "wav", "m4a"]
+AUDIO_UPLOAD_LABEL = f"{DOCUMENT_UPLOAD_LABEL} / Audio"
+
+
+def _preview_text(text: str, limit: int = 180) -> str:
+    compact = " ".join(text.split())
+    if len(compact) <= limit:
+        return compact
+    return compact[: limit - 1].rstrip() + "…"
+
+
+def _build_uploaded_intake_artifacts(name: str, text: str, documents: dict, doc_id: str) -> tuple[dict, dict, float]:
+    tl = text.lower()
+    sibling_docs = {
+        key: {"name": value["name"], "text": value.get("raw_text", "")}
+        for key, value in documents.items()
+        if key != doc_id and value.get("raw_text")
+    }
+    duplicate_hits = detect_duplicates(text, sibling_docs)
+    duplicate_warning = (
+        "Potential duplicate with " + ", ".join(hit["file"] for hit in duplicate_hits[:3])
+        if duplicate_hits
+        else "No duplicate detected in active case packet"
+    )
+
+    if any(
+        token in tl
+        for token in ("serious adverse event", "sae", "causality assessment", "seriousness criteria", "subject id")
+    ):
+        sae_summary = summarise_sae(text)
+        severity = {"URGENT": "Critical", "STANDARD": "High", "LOW": "Medium"}[sae_summary["priority"]]
+        classification = {
+            "probable_type": "SAE Narrative",
+            "severity": severity,
+            "duplicate_warning": duplicate_warning,
+            "escalation_recommendation": (
+                f"{sae_summary['timeline']} review required. "
+                + (
+                    "Immediate DCGI escalation recommended."
+                    if sae_summary["priority"] == "URGENT"
+                    else "Route to safety reviewer queue."
+                )
+            ),
+        }
+        synopsis = {
+            "headline": f"{sae_summary['priority']} SAE narrative uploaded for intake review",
+            "summary": (
+                f"Uploaded document reads like an SAE narrative with {sae_summary['causality'].lower()} causality, "
+                f"{sae_summary['outcome'].lower()} outcome, and {sae_summary['timeline'].lower()} reporting."
+            ),
+            "key_signals": [
+                f"Priority: {sae_summary['priority']}",
+                f"Causality: {sae_summary['causality']}",
+                f"Outcome: {sae_summary['outcome']}",
+            ],
+            "reviewer_prompt": "Confirm patient identifiers and reporting dates before routing to Protected View.",
+        }
+        return classification, synopsis, 0.91
+
+    if any(
+        token in tl
+        for token in (
+            "sugam",
+            "form ct-",
+            "ethics committee",
+            "clinical trial application",
+            "investigator brochure",
+            "phase iii",
+            "phase ii",
+            "phase i",
+        )
+    ):
+        completeness = assess_completeness(text)
+        severity = "High" if completeness["critical_missing"] else "Medium" if completeness["major_missing"] else "Low"
+        classification = {
+            "probable_type": "SUGAM Clinical Trial Application",
+            "severity": severity,
+            "duplicate_warning": duplicate_warning,
+            "escalation_recommendation": completeness["recommendation"],
+        }
+        synopsis = {
+            "headline": f"SUGAM submission uploaded with {completeness['score']}% completeness",
+            "summary": (
+                f"Uploaded submission contains {completeness['present']} of {completeness['total']} tracked intake fields. "
+                f"Critical missing fields: {len(completeness['critical_missing'])}. "
+                f"Major missing fields: {len(completeness['major_missing'])}."
+            ),
+            "key_signals": [
+                f"Completeness score: {completeness['score']}%",
+                f"Critical missing: {len(completeness['critical_missing'])}",
+                f"Major missing: {len(completeness['major_missing'])}",
+            ],
+            "reviewer_prompt": "Validate missing critical fields before forwarding for technical review.",
+        }
+        return classification, synopsis, 0.9
+
+    if any(token in tl for token in ("protocol amendment", "amendment", "redline", "eligibility criteria", "primary endpoint", "consent")):
+        substantive_flags = [
+            label
+            for label, present in (
+                ("Eligibility", "eligibility" in tl),
+                ("Endpoint", "endpoint" in tl),
+                ("Consent", "consent" in tl),
+                ("Dose", "dose" in tl or "dosage" in tl),
+            )
+            if present
+        ]
+        classification = {
+            "probable_type": "Protocol Amendment",
+            "severity": "High" if substantive_flags else "Medium",
+            "duplicate_warning": duplicate_warning,
+            "escalation_recommendation": "Review substantive amendment changes before downstream comparison or approval.",
+        }
+        synopsis = {
+            "headline": "Protocol amendment uploaded for intake review",
+            "summary": (
+                "Document appears to contain protocol or consent changes that should be routed through version comparison "
+                "before reviewer approval."
+            ),
+            "key_signals": substantive_flags[:3] or ["Amendment language detected in uploaded document"],
+            "reviewer_prompt": "Link the uploaded amendment to its baseline version before final routing.",
+        }
+        return classification, synopsis, 0.84
+
+    classification = {
+        "probable_type": "General Regulatory Document",
+        "severity": "Medium",
+        "duplicate_warning": duplicate_warning,
+        "escalation_recommendation": "Reviewer should confirm document type before downstream routing.",
+    }
+    synopsis = {
+        "headline": f"Uploaded intake document: {name}",
+        "summary": _preview_text(text, limit=260),
+        "key_signals": [
+            f"Filename: {name}",
+            f"Length: {len(text.split())} words",
+            "Uploaded directly from Document Intake",
+        ],
+        "reviewer_prompt": "Confirm the document category before using feature-specific review tools.",
+    }
+    return classification, synopsis, 0.78
+
+
+def _ingest_document_intake_upload(uploaded_file) -> tuple[str | None, str | None]:
+    text, err = extract_text(uploaded_file)
+    if err:
+        return None, err
+    if not text.strip():
+        return None, "No extractable text was found in the uploaded document."
+
+    file_bytes = uploaded_file.getvalue()
+    doc_id = f"upload_{hashlib.sha1(file_bytes).hexdigest()[:12]}"
+    active_case = get_active_case()
+    existing = active_case["documents"].get(doc_id)
+
+    if existing and existing.get("raw_text") == text:
+        active_case["selected_document_id"] = doc_id
+        active_case["document_classification"] = existing.get("classification", {})
+        active_case["structured_synopsis"] = existing.get("synopsis", {})
+        save_active_case(active_case)
+        return doc_id, None
+
+    classification, synopsis, confidence = _build_uploaded_intake_artifacts(
+        uploaded_file.name,
+        text,
+        active_case["documents"],
+        doc_id,
+    )
+    active_case["documents"][doc_id] = {
+        "name": uploaded_file.name,
+        "type": classification["probable_type"],
+        "source": "Manual upload — Document Intake",
+        "risk_level": classification["severity"],
+        "confidence": confidence,
+        "preview": synopsis["headline"],
+        "raw_text": text,
+        "classification": classification,
+        "synopsis": synopsis,
+    }
+    active_case["selected_document_id"] = doc_id
+    active_case["document_classification"] = classification
+    active_case["structured_synopsis"] = synopsis
+    active_case["export_readiness"]["classification"] = True
+    save_active_case(active_case)
+    add_audit_event(
+        "Document Intake",
+        f"Uploaded document added to case packet — {uploaded_file.name}",
+        confidence,
+        "Uploaded",
+        "Generated",
+        uploaded_file.name,
+        f"{classification['probable_type']} inferred from uploaded content and selected for intake review.",
+    )
+    return doc_id, None
+
+
+def _render_document_intake_uploader(widget_key: str) -> None:
+    st.markdown('<div class="upload-card"><h4>📁 Upload your document</h4>', unsafe_allow_html=True)
+    intake_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key=widget_key)
+    if intake_file:
+        doc_id, err = _ingest_document_intake_upload(intake_file)
+        if err:
+            st.error(f"Extraction error: {err}")
+        else:
+            active_case = get_active_case()
+            selected_doc = active_case["documents"][doc_id]
+            st.success(
+                f"✓ Added **{selected_doc['name']}** to the active case packet and selected it for intake review."
+            )
+    st.caption("Uploaded documents are added to the active case packet and override the sample document you select next.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+def _find_sentence(text: str, keywords: tuple[str, ...]) -> str | None:
+    for chunk in re.split(r"(?<=[.!?])\s+|\n+", text):
+        cleaned = " ".join(chunk.split())
+        if cleaned and any(keyword in cleaned.lower() for keyword in keywords):
+            return cleaned
+    return None
+
+
+def _workflow_entity_category(entity_type: str) -> str | None:
+    lowered = entity_type.lower()
+    if "patient" in lowered:
+        return "Patient"
+    if "investigator" in lowered:
+        return "Investigator"
+    if "date" in lowered or "dob" in lowered:
+        return "Date"
+    if any(token in lowered for token in ("site", "institution", "study id", "regulatory")):
+        return "Site"
+    return None
+
+
+def _build_workflow_protected_entities(text: str) -> list[dict]:
+    entities: list[dict] = []
+    anonymised = run_anonymisation(text)
+    for token in anonymised["tokens"]:
+        category = _workflow_entity_category(token["Entity Type"])
+        if not category:
+            continue
+        entities.append({
+            "label": token["Entity Type"],
+            "value": token["Original Value"],
+            "replacement": token["Token"],
+            "category": category,
+            "confidence": 0.9,
+            "approved": True,
+        })
+    return entities
+
+
+def _build_sae_missing_items(text: str) -> list[dict]:
+    tl = text.lower()
+    items: list[str] = []
+    if not any(token in tl for token in ("concomitant", "medication", "medicine", "drug history")):
+        items.append("Concomitant medication list at time of event")
+    if not any(token in tl for token in ("causality", "possibly related", "probably related", "definitely related", "unrelated")):
+        items.append("Investigator causality assessment")
+    if not any(token in tl for token in ("recovered", "recovering", "outcome", "fatal", "deceased", "resolved", "discharged")):
+        items.append("Follow-up outcome update")
+    if not any(token in tl for token in ("hospital", "icu", "seriousness criteria", "admitted", "emergency")):
+        items.append("Seriousness criterion confirmation")
+    return [{"item": item, "resolved": False} for item in items[:3]]
+
+
+def _build_uploaded_sae_review(text: str) -> dict:
+    sae_summary = summarise_sae(text)
+    sae_classification = classify_sae(text)
+    compact = " ".join(text.split())
+
+    patient_match = re.search(r"\b(\d{1,3})-year-old\s+(male|female|man|woman)\b([^.]*)", compact, re.I)
+    patient_profile = _preview_text(compact, 96)
+    if patient_match:
+        patient_profile = f"{patient_match.group(1)}-year-old {patient_match.group(2).lower()}"
+        trailing = patient_match.group(3).strip(" ,;")
+        if trailing.lower().startswith("with "):
+            patient_profile = _preview_text(f"{patient_profile} {trailing}", 96)
+    else:
+        subject_match = re.search(r"\b(?:subject|patient)\s*id[:\s-]*([A-Z0-9-]+)\b", compact, re.I)
+        if subject_match:
+            patient_profile = f"Subject {subject_match.group(1)}"
+
+    event = _find_sentence(
+        text,
+        ("adverse", "event", "hypogly", "reaction", "hospital", "icu", "death", "serious"),
+    ) or _preview_text(compact, 150)
+    action_taken = _find_sentence(
+        text,
+        ("action taken", "dose", "discontinu", "withdraw", "treated", "management", "monitor", "discharged"),
+    ) or "Reviewer to confirm action taken from uploaded SAE narrative."
+
+    severity_label = {
+        "DEATH": "Critical",
+        "DISABILITY": "Serious",
+        "HOSPITALISATION": "Serious",
+        "OTHERS": "Review Required",
+    }[sae_classification["severity"]]
+
+    return {
+        "patient_profile": patient_profile,
+        "event": _preview_text(event, 180),
+        "seriousness": sae_classification["severity"].replace("_", " ").title(),
+        "severity": severity_label,
+        "causality": sae_summary["causality"],
+        "action_taken": _preview_text(action_taken, 180),
+        "outcome": sae_summary["outcome"],
+        "reviewer_notes": "",
+        "review_packet": "",
+        "missing_info": _build_sae_missing_items(text),
+    }
+
+
+def _ingest_sae_review_upload(uploaded_file) -> str | None:
+    text, err = extract_text(uploaded_file)
+    if err:
+        return err
+    if not text.strip():
+        return "No extractable text was found in the uploaded SAE document."
+
+    active_case = get_active_case()
+    classification, synopsis, confidence = _build_uploaded_intake_artifacts(
+        uploaded_file.name,
+        text,
+        active_case["documents"],
+        "sae",
+    )
+
+    active_case["documents"]["sae"] = {
+        "name": uploaded_file.name,
+        "type": classification["probable_type"],
+        "source": "Manual upload — SAE Review",
+        "risk_level": classification["severity"],
+        "confidence": confidence,
+        "preview": synopsis["headline"],
+        "raw_text": text,
+        "classification": classification,
+        "synopsis": synopsis,
+    }
+    active_case["sae_review"] = _build_uploaded_sae_review(text)
+    active_case["selected_document_id"] = "sae"
+    active_case["document_classification"] = classification
+    active_case["structured_synopsis"] = synopsis
+    active_case["export_readiness"]["classification"] = True
+    active_case["export_readiness"]["protected_view"] = False
+    active_case["export_readiness"]["sae_packet"] = False
+    active_case["protected_view"]["source_document_id"] = "sae"
+    active_case["protected_view"]["validated"] = False
+    active_case["protected_view"]["validation_summary"] = ""
+    active_case["protected_view"]["escalation_status"] = "Not validated"
+    active_case["protected_view"]["category_filters"] = {
+        "Patient": True,
+        "Investigator": True,
+        "Date": True,
+        "Site": True,
+    }
+    active_case["protected_view"]["entities"] = _build_workflow_protected_entities(text)
+    save_active_case(active_case)
+    add_audit_event(
+        "SAE Review",
+        f"Uploaded SAE document added to review packet — {uploaded_file.name}",
+        confidence,
+        "Uploaded",
+        "Generated",
+        uploaded_file.name,
+        "SAE review summary and protected-view source were refreshed from the uploaded narrative.",
+    )
+    return None
+
+
+def _render_sae_review_uploader(widget_key: str) -> None:
+    st.markdown('<div class="upload-card"><h4>📁 Upload SAE document</h4>', unsafe_allow_html=True)
+    sae_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key=widget_key)
+    if sae_file:
+        err = _ingest_sae_review_upload(sae_file)
+        if err:
+            st.error(f"Extraction error: {err}")
+        else:
+            active_case = get_active_case()
+            st.success(
+                f"✓ Added **{active_case['documents']['sae']['name']}** as the active SAE review source."
+            )
+    active_case = get_active_case()
+    st.caption(f"Active SAE source: {active_case['documents']['sae']['name']}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -368,7 +760,7 @@ with t_anon:
 """, unsafe_allow_html=True)
 
     st.markdown('<div class="upload-card"><h4>📁 Upload document</h4>', unsafe_allow_html=True)
-    anon_file = st.file_uploader("Word (.docx) · PDF · Plain text (.txt)", type=["docx","pdf","txt"], key="anon_up")
+    anon_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key="anon_up")
     if anon_file:
         txt, err = extract_text(anon_file)
         if err:
@@ -496,9 +888,9 @@ with t_sum:
     st.markdown('<div class="upload-card"><h4>📁 Upload document</h4>', unsafe_allow_html=True)
     if doc_type == "Meeting Transcript / Audio":
         st.markdown('<div class="audio-note">Audio accepted. Automatic transcription requires Stage 2 Whisper API integration. Paste transcript text below.</div>', unsafe_allow_html=True)
-        sum_file = st.file_uploader("Word / PDF / TXT / Audio", type=["docx","pdf","txt","mp3","wav","m4a"], key="sum_up")
+        sum_file = st.file_uploader(AUDIO_UPLOAD_LABEL, type=AUDIO_UPLOAD_TYPES, key="sum_up")
     else:
-        sum_file = st.file_uploader("Word / PDF / TXT", type=["docx","pdf","txt"], key="sum_up2")
+        sum_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key="sum_up2")
 
     if sum_file:
         name_l = sum_file.name.lower()
@@ -606,7 +998,7 @@ with t_comp:
     col_a, col_b = st.columns([3,1])
     with col_a:
         st.markdown('<div class="upload-card"><h4>📁 Upload application document</h4>', unsafe_allow_html=True)
-        comp_file = st.file_uploader("Word / PDF / TXT", type=["docx","pdf","txt"], key="comp_up")
+        comp_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key="comp_up")
         if comp_file:
             txt, err = extract_text(comp_file)
             if err: st.error(err)
@@ -712,7 +1104,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
 """, unsafe_allow_html=True)
 
     st.markdown('<div class="upload-card"><h4>📁 Primary SAE Report</h4>', unsafe_allow_html=True)
-    cls_file = st.file_uploader("Word / PDF / TXT", type=["docx","pdf","txt"], key="class_up")
+    cls_file = st.file_uploader(DOCUMENT_UPLOAD_LABEL, type=DOCUMENT_UPLOAD_TYPES, key="class_up")
     if cls_file:
         txt, err = extract_text(cls_file)
         if err: st.error(err)
@@ -729,7 +1121,7 @@ Files are cleared on browser refresh — DPDP compliant (no external storage).</
         dcols = st.columns(2)
         for idx, (slot, label) in enumerate([("SAE-2","SAE Report 2"),("SAE-3","SAE Report 3")]):
             with dcols[idx]:
-                f2 = st.file_uploader(label, type=["docx","pdf","txt"], key=f"dup_{slot}")
+                f2 = st.file_uploader(label, type=DOCUMENT_UPLOAD_TYPES, key=f"dup_{slot}")
                 if f2:
                     t2, e2 = extract_text(f2)
                     if not e2 and t2.strip():
@@ -801,7 +1193,7 @@ with t_cmp:
     cv1, cv2 = st.columns(2)
     with cv1:
         st.markdown("**Version 1 — Original**")
-        v1f = st.file_uploader("Upload V1", type=["docx","pdf","txt"], key="v1f")
+        v1f = st.file_uploader("Upload V1", type=DOCUMENT_UPLOAD_TYPES, key="v1f")
         if v1f:
             t, e = extract_text(v1f)
             if not e and t.strip():
@@ -811,7 +1203,7 @@ with t_cmp:
         st.session_state["v1_text"] = st.session_state.get("v1ta","")
     with cv2:
         st.markdown("**Version 2 — Updated**")
-        v2f = st.file_uploader("Upload V2", type=["docx","pdf","txt"], key="v2f")
+        v2f = st.file_uploader("Upload V2", type=DOCUMENT_UPLOAD_TYPES, key="v2f")
         if v2f:
             t, e = extract_text(v2f)
             if not e and t.strip():
@@ -985,14 +1377,18 @@ if True:  # scope block — functions promoted to module level via exec pattern
                     st.caption(doc["preview"])
 
     def document_intake() -> None:
-        case["current_stage"] = "Document Intake"; save_active_case(case)
-        doc_ids  = list(case["documents"].keys())
+        active_case = get_active_case()
+        active_case["current_stage"] = "Document Intake"; save_active_case(active_case)
+        _render_document_intake_uploader("workflow_doc_upload")
+        active_case = get_active_case()
+        doc_ids  = list(active_case["documents"].keys())
         selected = st.selectbox("Case packet document", options=doc_ids,
-                                index=doc_ids.index(case["selected_document_id"]),
-                                format_func=lambda d: case["documents"][d]["name"])
-        if selected != case["selected_document_id"]:
-            case["selected_document_id"] = selected; save_active_case(case)
-        sel_doc = case["documents"][case["selected_document_id"]]
+                                index=doc_ids.index(active_case["selected_document_id"]),
+                                format_func=lambda d: active_case["documents"][d]["name"])
+        if selected != active_case["selected_document_id"]:
+            active_case["selected_document_id"] = selected; save_active_case(active_case)
+            active_case = get_active_case()
+        sel_doc = active_case["documents"][active_case["selected_document_id"]]
         st.markdown("### Intake controls")
         ic1,ic2,ic3,ic4 = st.columns(4)
         with ic1:
@@ -1057,8 +1453,11 @@ if True:  # scope block — functions promoted to module level via exec pattern
         if protected["validated"]: st.success(f"✓ {protected['validation_summary']} — {protected['escalation_status']}")
 
     def sae_review_screen() -> None:
-        case["current_stage"] = "SAE Review"; save_active_case(case)
-        sae = case["sae_review"]
+        active_case = get_active_case()
+        active_case["current_stage"] = "SAE Review"; save_active_case(active_case)
+        _render_sae_review_uploader("workflow_sae_upload")
+        active_case = get_active_case()
+        sae = active_case["sae_review"]
         with st.container(border=True):
             sc1,sc2,sc3 = st.columns(3)
             with sc1: st.write(f"**Patient:** {sae['patient_profile']}"); st.write(f"**Event:** {sae['event']}")
@@ -1068,14 +1467,14 @@ if True:  # scope block — functions promoted to module level via exec pattern
         for item in sae["missing_info"]:
             item["resolved"] = st.checkbox(item["item"], value=item["resolved"], key=f"mi_{item['item']}")
         sae["reviewer_notes"] = st.text_area("Reviewer notes", value=sae["reviewer_notes"], height=80)
-        save_active_case(case)
+        save_active_case(active_case)
         sa1,sa2,sa3,sa4 = st.columns(4)
         with sa1:
             if st.button("Confirm reviewer action", use_container_width=True):
-                confirm_reviewer_action("SAE Review","Reviewer confirmed SAE output","SAE output accepted.",case["documents"]["sae"]["name"],confidence=0.94); st.success("Confirmed.")
+                confirm_reviewer_action("SAE Review","Reviewer confirmed SAE output","SAE output accepted.",active_case["documents"]["sae"]["name"],confidence=active_case["documents"]["sae"]["confidence"]); st.success("Confirmed.")
         with sa2:
             if st.button("Escalate low-confidence", use_container_width=True):
-                confirm_reviewer_action("SAE Review","Escalated","Escalated due to source gaps.",case["documents"]["sae"]["name"],confidence=0.9,final_status="Escalated"); st.warning("Escalated.")
+                confirm_reviewer_action("SAE Review","Escalated","Escalated due to source gaps.",active_case["documents"]["sae"]["name"],confidence=active_case["documents"]["sae"]["confidence"],final_status="Escalated"); st.warning("Escalated.")
         with sa3:
             if st.button("Create review packet", use_container_width=True):
                 packet = create_sae_packet(); st.success("SAE packet created."); st.text_area("Generated packet", value=packet, height=200)
@@ -1083,7 +1482,7 @@ if True:  # scope block — functions promoted to module level via exec pattern
             if st.button("→ Version Compare", use_container_width=True): go_to("Version Compare")
         if sae["review_packet"]:
             st.download_button("⬇ SAE Review Packet", sae["review_packet"].encode(),
-                               file_name=f"{case['case_id']}_sae_packet.txt", mime="text/plain", use_container_width=True)
+                               file_name=f"{active_case['case_id']}_sae_packet.txt", mime="text/plain", use_container_width=True)
 
     def version_compare_screen() -> None:
         case["current_stage"] = "Version Compare"; save_active_case(case)
@@ -1209,6 +1608,7 @@ with t_cmd_dash:
 
 with t_doc_intake:
     render_banner("Document Intake", "Select and classify the incoming case packet document before routing to review.")
+    _render_document_intake_uploader("workflow_doc_upload_tab")
     case2 = get_active_case()
     doc_ids2  = list(case2["documents"].keys())
     selected2 = st.selectbox("Case packet document", options=doc_ids2,
@@ -1247,6 +1647,7 @@ with t_doc_intake:
 
 with t_sae_review:
     render_banner("SAE Review", "Review SAE classification output, resolve missing information, and confirm or escalate.")
+    _render_sae_review_uploader("workflow_sae_upload_tab")
     case3 = get_active_case()
     sae3 = case3["sae_review"]
     with st.container(border=True):
@@ -1263,10 +1664,10 @@ with t_sae_review:
     srt1,srt2,srt3,srt4 = st.columns(4)
     with srt1:
         if st.button("Confirm Reviewer Action", use_container_width=True, key="srt_confirm"):
-            confirm_reviewer_action("SAE Review","Reviewer confirmed SAE output","SAE output accepted.",case3["documents"]["sae"]["name"],confidence=0.94); st.success("Confirmed.")
+            confirm_reviewer_action("SAE Review","Reviewer confirmed SAE output","SAE output accepted.",case3["documents"]["sae"]["name"],confidence=case3["documents"]["sae"]["confidence"]); st.success("Confirmed.")
     with srt2:
         if st.button("Escalate Low-Confidence", use_container_width=True, key="srt_esc"):
-            confirm_reviewer_action("SAE Review","Escalated","Escalated due to source gaps.",case3["documents"]["sae"]["name"],confidence=0.9,final_status="Escalated"); st.warning("Escalated.")
+            confirm_reviewer_action("SAE Review","Escalated","Escalated due to source gaps.",case3["documents"]["sae"]["name"],confidence=case3["documents"]["sae"]["confidence"],final_status="Escalated"); st.warning("Escalated.")
     with srt3:
         if st.button("Create Review Packet", use_container_width=True, key="srt_pkt"):
             pkt3 = create_sae_packet(); st.success("SAE packet created."); st.text_area("Generated packet", value=pkt3, height=200, key="srt_pkt_out")

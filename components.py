@@ -36,7 +36,7 @@ from engine import CLAUDE_OK, CLAUDE_MODEL  # noqa: F401
 
 def configure_page() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon="⚖️", layout="wide",
-                       initial_sidebar_state="expanded")
+                       initial_sidebar_state="collapsed")
 
 
 def apply_styles() -> None:
@@ -47,10 +47,8 @@ html,body,[class*="css"]{font-family:'Inter',sans-serif;}
 #MainMenu,footer,header{visibility:hidden;}
 .stApp{background-color:#f0f3f8;}
 
-section[data-testid="stSidebar"]{background:linear-gradient(180deg,#001f5b 0%,#003087 60%,#004db3 100%);}
-section[data-testid="stSidebar"] *{color:white!important;}
-section[data-testid="stSidebar"] .stMarkdown p{color:rgba(255,255,255,0.8)!important;}
-section[data-testid="stSidebar"] .stSelectbox>div>div{background:rgba(255,255,255,0.1)!important;border:1px solid rgba(255,255,255,0.25)!important;border-radius:8px!important;}
+section[data-testid="stSidebar"]{display:none!important;}
+[data-testid="collapsedControl"]{display:none!important;}
 
 .hero{background:linear-gradient(135deg,#001f5b 0%,#003087 55%,#0052cc 100%);border-radius:16px;padding:28px 36px;margin-bottom:18px;box-shadow:0 4px 24px rgba(0,48,135,0.18);}
 .hero h1{color:white;font-size:28px;font-weight:800;margin:0;}
@@ -406,7 +404,35 @@ def render_banner(title: str, subtitle: str) -> None:
 
 
 def render_top_nav() -> str:
-    """Returns the active workflow screen from session state. No ribbon rendered."""
+    """Render top-of-page workflow controls now that the sidebar is removed."""
+    with st.container(border=True):
+        nav1, nav2, nav3 = st.columns([2.4, 2.0, 1.2])
+
+        with nav1:
+            case_key = st.selectbox(
+                "Active sample packet",
+                options=list(st.session_state.demo_cases.keys()),
+                index=list(st.session_state.demo_cases.keys()).index(st.session_state.active_case_key),
+                format_func=lambda k: st.session_state.demo_cases[k]["title"],
+                key="top_case_selector",
+            )
+            if case_key != st.session_state.active_case_key:
+                set_active_case(case_key)
+
+        with nav2:
+            screen = st.selectbox(
+                "Review workflow",
+                options=SCREENS,
+                index=SCREENS.index(st.session_state.screen),
+                key="top_screen_selector",
+            )
+            st.session_state.screen = screen
+
+        with nav3:
+            case = get_active_case()
+            st.markdown("**Current packet**")
+            st.caption(case["packet_id"])
+            st.caption(f"Stage: {case['current_stage']}")
     return st.session_state.get("screen", SCREENS[0])
 
 

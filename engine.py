@@ -8,7 +8,7 @@ All rule-based processing engines:
   - SAE classification + duplicate detection
   - Document comparison (difflib semantic diff)
   - Inspection report generation (CDSCO GCP format)
-  - File text extraction (PDF, DOCX, TXT)
+  - File text extraction (PDF, DOCX, TXT, spreadsheets, images)
   - Optional Claude API calls for AI-enhanced summaries
 """
 
@@ -30,6 +30,21 @@ try:
 except ImportError:
     DOCX_OK = False
 
+try:
+    from PIL import Image
+    IMAGE_OK = True
+except ImportError:
+    IMAGE_OK = False
+
+try:
+    import numpy as np
+    from rapidocr_onnxruntime import RapidOCR
+    OCR_OK = True
+except ImportError:
+    OCR_OK = False
+    RapidOCR = None
+    np = None
+
 # ── Optional Claude API ───────────────────────────────────────────────────────
 try:
     import anthropic
@@ -40,6 +55,7 @@ except Exception:
     CLAUDE_OK = False
 
 CLAUDE_MODEL = "claude-haiku-4-5-20251001"  # free-tier compatible
+_OCR_ENGINE = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -69,6 +85,72 @@ def _extract_docx_text(doc) -> str:
     walk_tables(doc.tables)
     return "\n".join(parts).strip()
 
+
+def _dataframe_to_text(df: pd.DataFrame) -> str:
+    cleaned = df.fillna("").astype(str)
+    if cleaned.empty:
+        return ""
+    lines = [cleaned.to_string(index=False)]
+    return "\n".join(line for line in lines if line.strip()).strip()
+
+
+def _extract_spreadsheet_text(raw: bytes, filename: str) -> tuple[str, str | None]:
+    try:
+        if filename.endswith(".csv"):
+            df = pd.read_csv(io.BytesIO(raw), dtype=str, keep_default_na=False)
+            extracted = _dataframe_to_text(df)
+        else:
+            sheets = pd.read_excel(io.BytesIO(raw), sheet_name=None, dtype=str)
+            chunks = []
+            for sheet_name, df in sheets.items():
+                sheet_text = _dataframe_to_text(df)
+                if sheet_text:
+                    chunks.append(f"[Sheet: {sheet_name}]\n{sheet_text}")
+            extracted = "\n\n".join(chunks).strip()
+        if not extracted:
+            return "", (
+                f"No extractable text found in {filename}. "
+                "The spreadsheet may be empty or contain only unsupported embedded objects."
+            )
+        return extracted, None
+    except Exception as exc:
+        return "", f"Spreadsheet extraction failed for {filename}: {exc}"
+
+
+def _get_ocr_engine():
+    global _OCR_ENGINE
+    if not OCR_OK:
+        return None, (
+            "Image OCR support is unavailable in the active environment. "
+            f"Install `rapidocr-onnxruntime` for `{sys.executable}` and restart the app."
+        )
+    if _OCR_ENGINE is None:
+        _OCR_ENGINE = RapidOCR()
+    return _OCR_ENGINE, None
+
+
+def _extract_image_text(raw: bytes, filename: str) -> tuple[str, str | None]:
+    if not IMAGE_OK:
+        return "", "Image support is unavailable in the active environment. Install `Pillow` and restart the app."
+
+    ocr_engine, ocr_error = _get_ocr_engine()
+    if ocr_error:
+        return "", ocr_error
+
+    try:
+        image = Image.open(io.BytesIO(raw)).convert("RGB")
+        result, _ = ocr_engine(np.array(image))
+        extracted = "\n".join(item[1] for item in (result or []) if len(item) > 1 and item[1]).strip()
+        if not extracted:
+            return "", (
+                f"No extractable text found in {filename}. "
+                "The image may not contain readable text or OCR confidence was too low."
+            )
+        return extracted, None
+    except Exception as exc:
+        return "", f"Image OCR failed for {filename}: {exc}"
+
+
 def _resolve_pdf_reader():
     """Resolve an available PDF reader at call time to avoid stale import state."""
     errors: list[str] = []
@@ -87,7 +169,7 @@ def _resolve_pdf_reader():
     )
 
 def extract_text(uploaded_file) -> tuple[str, str | None]:
-    """Returns (text, error_or_None). Handles PDF, DOCX, TXT."""
+    """Returns (text, error_or_None). Handles documents, spreadsheets, and images."""
     if uploaded_file is None:
         return "", None
     name = uploaded_file.name.lower()
@@ -122,6 +204,10 @@ def extract_text(uploaded_file) -> tuple[str, str | None]:
             return extracted, None
         elif name.endswith(".txt"):
             return raw.decode("utf-8", errors="ignore"), None
+        elif name.endswith((".csv", ".xlsx", ".xls")):
+            return _extract_spreadsheet_text(raw, uploaded_file.name)
+        elif name.endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff")):
+            return _extract_image_text(raw, uploaded_file.name)
         return "", f"Unsupported file type: {uploaded_file.name}"
     except Exception as exc:
         return "", str(exc)
